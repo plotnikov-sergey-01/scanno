@@ -7,7 +7,7 @@
 3. Clone and open the **repo root** in Cursor (folder that contains `docker-compose.yml`, not only `web/` or `backend/`).
 
 ```bash
-git clone <REPO_URL> scanno
+git clone https://github.com/plotnikov-sergey-01/scanno.git scanno
 cd scanno
 ```
 
