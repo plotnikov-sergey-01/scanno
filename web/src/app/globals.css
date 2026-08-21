@@ -1,0 +1,20 @@
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;800&family=Source+Sans+3:wght@400;500;600&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-display: "Outfit", system-ui, sans-serif;
+  --font-body: "Source Sans 3", system-ui, sans-serif;
+}
+
+body {
+  @apply bg-ink-50 font-body text-ink-900 antialiased;
+  background-image: theme("backgroundImage.shelf-grid");
+  min-height: 100vh;
+}
+
+a {
+  @apply transition-colors;
+}

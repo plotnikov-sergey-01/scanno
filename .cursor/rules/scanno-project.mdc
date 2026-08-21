@@ -1,0 +1,13 @@
+---
+description: Scanno/Rebuyly product stack, layout, and hard product rules for every agent session
+alwaysApply: true
+---
+
+# Scanno project
+
+- Monorepo: `backend/` (Django+DRF), `web/` (Next.js), `mobile/` (Expo), `docs/`, `docker-compose.yml`.
+- Working name Scanno; brand candidate Rebuyly — avoid mass rename unless asked.
+- Local: `docker compose up --build` → web :3000, API :8000, MinIO :9000.
+- Product rules: one review/user/product; barcode is canonical key; catalog photos locked; user products editable only by creator. Details in `docs/PRODUCT_IDENTITY.md`.
+- Never commit secrets (`.env`, `.env.local`). Prefer `docs/ONBOARDING.md` + `AGENTS.md` for setup.
+- Keep diffs focused; follow existing patterns in each app.

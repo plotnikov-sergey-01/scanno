@@ -1,0 +1,34 @@
+{
+  "expo": {
+    "name": "Scanno",
+    "slug": "scanno",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "scanno",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "plugins": [
+      "expo-router",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow Scanno to scan product barcodes."
+        }
+      ]
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "app.scanno.mobile"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#00b4ef"
+      },
+      "permissions": ["CAMERA"],
+      "package": "app.scanno.mobile"
+    },
+    "extra": {
+      "apiUrl": "http://localhost:8000/api/v1"
+    }
+  }
+}
