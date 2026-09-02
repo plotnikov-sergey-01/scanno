@@ -34,7 +34,207 @@ npm run dev
 
 ---
 
-## Production on DigitalOcean VPS (recommended for MVP)
+## Production on DigitalOcean VPS
+
+**Django, PostgreSQL, MinIO и Next.js ставить на сервер отдельно не нужно** — всё крутится в Docker-контейнерах из репозитория. На VPS ты устанавливаешь только:
+
+| Что | Зачем |
+|-----|--------|
+| **Docker** (+ Compose) | Запуск db, minio, api, web |
+| **Git** | `git clone` / обновления |
+| **UFW** (firewall) | Открыть нужные порты |
+| **Caddy** | Только когда появится **домен** и нужен HTTPS |
+
+Ни Python, ни Node, ни `pip install django` на хосте не требуются.
+
+Два сценария:
+
+1. **[Старт без домена (голый IP)](#start-without-a-domain-bare-ip)** — твой случай сейчас. HTTP, порты `3000` / `8000` / `9000`.
+2. **[С доменом + HTTPS](#production-with-a-domain-https)** — когда купишь домен и настроишь DNS.
+
+---
+
+## Start without a domain (bare IP)
+
+Подходит для первого деплоя и тестов с друзьями по ссылке `http://ВАШ_IP:3000`.
+
+Let's Encrypt **не выдаёт** сертификат на голый IP, поэтому HTTPS пока нет — это нормально для staging.
+
+### Шаг 0. Droplet в DigitalOcean
+
+1. Create Droplet → **Ubuntu 24.04**, **2–4 GB RAM**.
+2. Authentication → **SSH key** (не пароль).
+3. Запиши **Public IPv4** из панели, например `159.89.1.2` — дальше везде подставляешь свой IP.
+
+### Шаг 1. Подключиться по SSH
+
+```bash
+ssh root@159.89.1.2
+```
+
+(или `ssh deploy@...`, если создал отдельного пользователя.)
+
+### Шаг 2. Установить Docker, Git, firewall
+
+```bash
+apt update && apt upgrade -y
+apt install -y ca-certificates curl git ufw
+
+curl -fsSL https://get.docker.com | sh
+
+ufw allow OpenSSH
+ufw allow 3000/tcp
+ufw allow 8000/tcp
+ufw allow 9000/tcp
+ufw enable
+```
+
+Caddy **не ставь** — домена пока нет.
+
+### Шаг 3. Клонировать репозиторий
+
+```bash
+mkdir -p /opt/scanno && cd /opt/scanno
+git clone https://github.com/plotnikov-sergey-01/scanno.git .
+```
+
+### Шаг 4. Сгенерировать пароли
+
+На сервере:
+
+```bash
+openssl rand -hex 32          # → DJANGO_SECRET_KEY
+openssl rand -base64 24       # → POSTGRES_PASSWORD и MINIO_ROOT_PASSWORD (один и тот же)
+```
+
+Запиши оба значения — они понадобятся в двух файлах.
+
+### Шаг 5. Создать файл `.env` в корне репозитория
+
+```bash
+cp .env.production.ip.example .env
+nano .env
+```
+
+Замени **`159.89.1.2`** на свой IP и **`K7mP9xR2vN4wQ8sL1tJ6hF0`** на пароль из шага 4.
+
+Пример готового `.env` (если IP = `159.89.1.2`, пароль = `MySecretPass123`):
+
+```env
+POSTGRES_DB=scanno
+POSTGRES_USER=scanno
+POSTGRES_PASSWORD=MySecretPass123
+
+MINIO_ROOT_USER=scanno
+MINIO_ROOT_PASSWORD=MySecretPass123
+AWS_STORAGE_BUCKET_NAME=scanno
+
+NEXT_PUBLIC_API_URL=http://159.89.1.2:8000/api/v1
+```
+
+**Что здесь важно:**
+
+- `POSTGRES_PASSWORD` — пароль базы внутри Docker (не путать с Django).
+- `MINIO_ROOT_PASSWORD` — пароль хранилища картинок; `AWS_SECRET_ACCESS_KEY` в backend должен совпадать.
+- `NEXT_PUBLIC_API_URL` — **полный URL API**, который браузер пользователя будет вызывать. Формат: `http://ВАШ_IP:8000/api/v1` (без слэша в конце). Зашивается в образ `web` при сборке.
+
+### Шаг 6. Создать `backend/.env` (настройки Django)
+
+```bash
+cp backend/.env.production.ip.example backend/.env
+nano backend/.env
+```
+
+Пример готового `backend/.env`:
+
+```env
+DJANGO_SECRET_KEY=вставь_результат_openssl_rand_hex_32
+DJANGO_DEBUG=0
+ALLOWED_HOSTS=159.89.1.2,localhost,127.0.0.1
+
+DATABASE_URL=postgres://scanno:MySecretPass123@db:5432/scanno
+
+CORS_ALLOWED_ORIGINS=http://159.89.1.2:3000
+
+USE_S3=1
+AWS_ACCESS_KEY_ID=scanno
+AWS_SECRET_ACCESS_KEY=MySecretPass123
+AWS_STORAGE_BUCKET_NAME=scanno
+AWS_S3_ENDPOINT_URL=http://minio:9000
+AWS_S3_CUSTOM_DOMAIN=159.89.1.2:9000/scanno
+
+OPEN_FOOD_FACTS_USER_AGENT=Scanno/1.0 (you@example.com)
+```
+
+**Построчно:**
+
+| Переменная | Что поставить |
+|------------|----------------|
+| `DJANGO_SECRET_KEY` | случайная строка (`openssl rand -hex 32`) |
+| `DJANGO_DEBUG` | `0` на сервере (не `1`) |
+| `ALLOWED_HOSTS` | твой IP + `localhost,127.0.0.1` |
+| `DATABASE_URL` | `postgres://scanno:<тот_же_пароль_что_POSTGRES_PASSWORD>@db:5432/scanno` — хост **`db`** это имя сервиса в Docker, не IP |
+| `CORS_ALLOWED_ORIGINS` | `http://ВАШ_IP:3000` — откуда открывается фронт |
+| `USE_S3` | `1` — картинки в MinIO |
+| `AWS_ACCESS_KEY_ID` | `scanno` (= `MINIO_ROOT_USER` из корневого `.env`) |
+| `AWS_SECRET_ACCESS_KEY` | тот же пароль, что `MINIO_ROOT_PASSWORD` |
+| `AWS_S3_ENDPOINT_URL` | `http://minio:9000` — **внутри** Docker, не менять |
+| `AWS_S3_CUSTOM_DOMAIN` | `ВАШ_IP:9000/scanno` — как браузер качает фото |
+| `OPEN_FOOD_FACTS_USER_AGENT` | любой контактный email |
+
+Файлы `.env` и `backend/.env` **не коммитить** — они уже в `.gitignore`.
+
+### Шаг 7. Собрать и запустить
+
+```bash
+cd /opt/scanno
+docker compose -f docker-compose.prod.ip.yml up -d --build
+```
+
+Первая сборка `web` может занять 5–15 минут.
+
+Проверить:
+
+```bash
+docker compose -f docker-compose.prod.ip.yml ps
+docker compose -f docker-compose.prod.ip.yml logs -f api web
+```
+
+### Шаг 8. Создать админа Django
+
+```bash
+docker compose -f docker-compose.prod.ip.yml exec api python manage.py createsuperuser
+```
+
+(В prod **`seed_dev` не запускается** — только свой superuser.)
+
+### Шаг 9. Проверить в браузере
+
+| URL | Что должно открыться |
+|-----|----------------------|
+| http://159.89.1.2:3000 | веб-приложение |
+| http://159.89.1.2:8000/api/docs/ | Swagger API |
+| http://159.89.1.2:8000/admin/ | Django admin |
+
+Ссылку для друзей: **`http://ВАШ_IP:3000`**.
+
+### Обновление кода
+
+```bash
+cd /opt/scanno
+git pull
+docker compose -f docker-compose.prod.ip.yml up -d --build
+```
+
+Если менял только backend — `--build api`. Если менял `NEXT_PUBLIC_API_URL` или фронт — пересобирай `web`.
+
+### Когда купишь домен
+
+Переходи на [Production with a domain (HTTPS)](#production-with-a-domain-https): Caddy, субдомены `app` / `api` / `media`, `docker-compose.prod.yml` вместо `.ip.yml`.
+
+---
+
+## Production with a domain (HTTPS)
 
 One droplet runs everything: PostgreSQL, MinIO (S3-compatible storage), Django API, Next.js web. **Caddy** on the host terminates HTTPS and proxies to Docker on `127.0.0.1`.
 
@@ -125,28 +325,50 @@ cp .env.production.example .env
 cp backend/.env.production.example backend/.env
 ```
 
-**Root `.env`** — Postgres/MinIO passwords and public API URL for the web build:
-
-- `POSTGRES_PASSWORD`, `MINIO_ROOT_PASSWORD` — long random strings (same value in `backend/.env` where noted).
-- `NEXT_PUBLIC_API_URL=https://api.example.com/api/v1` — must match your real `api` subdomain.
-
-**`backend/.env`** — Django settings:
-
-- `DJANGO_SECRET_KEY` — e.g. `openssl rand -hex 32`
-- `DJANGO_DEBUG=0`
-- `ALLOWED_HOSTS=api.example.com,localhost,127.0.0.1`
-- `DATABASE_URL=postgres://scanno:<POSTGRES_PASSWORD>@db:5432/scanno`
-- `CORS_ALLOWED_ORIGINS=https://app.example.com`
-- `USE_S3=1`, MinIO credentials matching root `.env`
-- `AWS_S3_ENDPOINT_URL=http://minio:9000` (internal Docker hostname)
-- `AWS_S3_CUSTOM_DOMAIN=media.example.com/scanno` (public HTTPS URL for browsers)
-
-Generate secrets:
+Generate secrets first:
 
 ```bash
-openssl rand -hex 32   # DJANGO_SECRET_KEY
-openssl rand -base64 24   # passwords
+openssl rand -hex 32
+openssl rand -base64 24
 ```
+
+**Root `.env`** — example for domain `example.com`:
+
+```env
+POSTGRES_DB=scanno
+POSTGRES_USER=scanno
+POSTGRES_PASSWORD=<random-from-openssl>
+
+MINIO_ROOT_USER=scanno
+MINIO_ROOT_PASSWORD=<same-or-another-random>
+AWS_STORAGE_BUCKET_NAME=scanno
+
+NEXT_PUBLIC_API_URL=https://api.example.com/api/v1
+```
+
+**`backend/.env`** — Django:
+
+```env
+DJANGO_SECRET_KEY=<random-from-openssl-rand-hex-32>
+DJANGO_DEBUG=0
+ALLOWED_HOSTS=api.example.com,localhost,127.0.0.1
+
+DATABASE_URL=postgres://scanno:<POSTGRES_PASSWORD>@db:5432/scanno
+
+CORS_ALLOWED_ORIGINS=https://app.example.com
+
+USE_S3=1
+AWS_ACCESS_KEY_ID=scanno
+AWS_SECRET_ACCESS_KEY=<MINIO_ROOT_PASSWORD>
+AWS_STORAGE_BUCKET_NAME=scanno
+AWS_S3_ENDPOINT_URL=http://minio:9000
+AWS_S3_CUSTOM_DOMAIN=media.example.com/scanno
+
+OPEN_FOOD_FACTS_USER_AGENT=Scanno/1.0 (you@example.com)
+```
+
+Same rules as in [Start without a domain](#start-without-a-domain-bare-ip) (шаги 5–6): пароли Postgres/MinIO совпадают между файлами; `DATABASE_URL` использует хост `db`; `CORS_ALLOWED_ORIGINS` — origin фронта без пути.
+
 
 ### 6. Caddy reverse proxy
 
@@ -273,8 +495,10 @@ When traffic or ops burden grows:
 | Symptom | Likely cause |
 |---------|----------------|
 | Caddy fails to get certificate | DNS A records not pointing to VPS yet |
-| CORS errors in browser | `CORS_ALLOWED_ORIGINS` missing `https://app...` or wrong scheme |
+| CORS errors in browser | `CORS_ALLOWED_ORIGINS` missing correct origin (`http://IP:3000` or `https://app...`) |
 | Web calls wrong API | Rebuild `web` after changing `NEXT_PUBLIC_API_URL` |
-| Broken image URLs | `AWS_S3_CUSTOM_DOMAIN` must match Caddy `media` host + bucket path |
+| Broken image URLs | `AWS_S3_CUSTOM_DOMAIN` must match how browsers reach MinIO (`IP:9000/scanno` or `media.domain/scanno`) |
 | 502 from Caddy | Stack not up — `docker compose ... ps` and check api/web logs |
+| Connection refused on :3000 | Firewall — `ufw allow 3000` (IP mode) or Caddy not running (domain mode) |
+| `DisallowedHost` in API | Add your IP or domain to `ALLOWED_HOSTS` in `backend/.env` |
 | Out of memory on build | Add swap or use a 4 GB droplet |
