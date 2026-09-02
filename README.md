@@ -69,5 +69,6 @@ scanno/
 1. Clone this repo and open the **repository root** in Cursor.
 2. Follow [docs/ONBOARDING.md](docs/ONBOARDING.md).
 3. Project brief for AI: [AGENTS.md](AGENTS.md). Product rules: [docs/PRODUCT_IDENTITY.md](docs/PRODUCT_IDENTITY.md).
+4. Backlog & Trello import: [docs/BACKLOG.md](docs/BACKLOG.md), [docs/trello-scanno-mvp.json](docs/trello-scanno-mvp.json).
 
 Working brand candidate: **Rebuyly** (repo/code still use Scanno until rename is decided).

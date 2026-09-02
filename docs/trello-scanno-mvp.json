@@ -1,0 +1,1395 @@
+{
+  "meta": {
+    "project": "Scanno / Rebuyly",
+    "version": "1.0",
+    "created": "2026-08-22",
+    "importNotes": "Trello has no native JSON import. Use a JSON Import Power-Up, or trelloExport section with compatible importers, or Trello REST API."
+  },
+  "board": {
+    "name": "Scanno MVP Backlog",
+    "desc": "MVP gaps + deploy + social v1 + mobile. Content model = Review on Product (see repo docs/PRODUCT_IDENTITY.md). Repo: plotnikov-sergey-01/scanno"
+  },
+  "lists": [
+    {
+      "name": "MVP — доделать",
+      "cards": [
+        {
+          "name": "Комментарии к отзывам (UI)",
+          "desc": "**Что:** показывать комментарии под каждым отзывом на `/products/[id]`; форма добавления для залогиненных.\n\n**API уже есть:** `GET/POST /reviews/{id}/comments/`, `api.addComment()` в web.\n\n**Не ломать:** приватный отзыв — комментарии только при доступе к отзыву.",
+          "labels": [
+            "web",
+            "mvp",
+            "p1"
+          ],
+          "checklist": [
+            "Список комментариев под отзывом",
+            "Форма Add comment + optimistic или reload",
+            "Счётчик comment_count обновляется",
+            "Ошибки auth/403 обработаны"
+          ]
+        },
+        {
+          "name": "Жалоба Report (UI)",
+          "desc": "**Что:** кнопка Report на отзыве (и позже на комментарии) → модалка reason + details.\n\n**API:** `POST /reports/` (`target_type`, `target_id`, `reason`).",
+          "labels": [
+            "web",
+            "mvp",
+            "p2"
+          ],
+          "checklist": [
+            "Кнопка Report на ReviewCard или product page",
+            "Модалка с reason + optional details",
+            "Только для auth",
+            "Success toast без перезагрузки страницы"
+          ]
+        },
+        {
+          "name": "Редактирование user-product на карточке",
+          "desc": "**Что:** inline edit name/brand/category/description для `source=user` и `can_edit_image`.\n\n**API:** `PATCH /products/{id}/` (`api.updateProduct`). Catalog/OFF — read-only.",
+          "labels": [
+            "web",
+            "backend",
+            "mvp",
+            "p2"
+          ],
+          "checklist": [
+            "Кнопка Edit только для creator",
+            "Catalog products не редактируются",
+            "Сохранение через PATCH",
+            "Описание видно после save"
+          ]
+        },
+        {
+          "name": "Настройки профиля",
+          "desc": "**Что:** страница `/settings` или `/me/edit`: display_name, bio, avatar.\n\n**Backend:** расширить `PATCH /auth/me/` или profile endpoint.",
+          "labels": [
+            "web",
+            "backend",
+            "mvp",
+            "p2"
+          ],
+          "checklist": [
+            "Форма display_name + bio",
+            "Avatar upload (optional v1: URL or file)",
+            "Изменения на `/u/[username]`",
+            "Только свой профиль"
+          ]
+        },
+        {
+          "name": "Web: сканер штрихкода (камера)",
+          "desc": "**Что:** на `/search` — Scan via camera (не только ручной ввод). После scan → `lookupBarcode` → redirect на product.",
+          "labels": [
+            "web",
+            "mvp",
+            "p3"
+          ],
+          "checklist": [
+            "Кнопка Scan + getUserMedia или библиотека",
+            "EAN/UPC decode",
+            "Redirect на product или manual create flow",
+            "HTTPS note для prod (camera requires secure context)"
+          ]
+        },
+        {
+          "name": "Галерея фото отзывов на product page",
+          "desc": "**Что:** блок «Photos from shoppers» — все public review images в одной галерее + lightbox (сейчас фото только внутри ReviewCard).",
+          "labels": [
+            "web",
+            "mvp",
+            "p3"
+          ],
+          "checklist": [
+            "Агрегация images из reviews",
+            "Lightbox как у product photo",
+            "Пустое состояние скрыто"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Deploy & staging",
+      "cards": [
+        {
+          "name": "Staging на DigitalOcean",
+          "desc": "**Что:** один droplet, Docker Compose (api + web + postgres + minio), Caddy/Nginx + Let's Encrypt.\n\n**URLs:** `app.<subdomain>`, `api.<subdomain>`.\n\n**Docs:** `docs/DEPLOY.md`.",
+          "labels": [
+            "infra",
+            "p1"
+          ],
+          "checklist": [
+            "Droplet 4GB RAM / 2 vCPU",
+            "DNS A records",
+            "HTTPS работает",
+            "ALLOWED_HOSTS + CORS настроены",
+            "Секреты не в git"
+          ]
+        },
+        {
+          "name": "Production env checklist",
+          "desc": "`DJANGO_DEBUG=0`, strong SECRET_KEY, gunicorn, `NEXT_PUBLIC_API_URL`, USE_S3 or MinIO on server, сменить seed passwords.",
+          "labels": [
+            "infra",
+            "p1"
+          ],
+          "checklist": [
+            "backend/.env на сервере",
+            "web env at build time",
+            "Superuser создан",
+            "seed dev passwords disabled"
+          ]
+        },
+        {
+          "name": "GitHub Actions CI",
+          "desc": "PR: backend migrate check + web `npm run build`.",
+          "labels": [
+            "infra",
+            "p2"
+          ],
+          "checklist": [
+            "Workflow on pull_request",
+            "Backend job passes",
+            "Web build passes"
+          ]
+        },
+        {
+          "name": "OFF import на staging",
+          "desc": "`python manage.py import_off_popular --per-combo 40` на staging DB для демо друзьям.",
+          "labels": [
+            "infra",
+            "p2"
+          ],
+          "checklist": [
+            "Command documented in runbook",
+            "Explore не пустой",
+            "Barcode lookup works"
+          ]
+        },
+        {
+          "name": "Deploy runbook",
+          "desc": "Обновить `docs/DEPLOY.md`: DO, DNS, Caddy, pull + compose up, rollback.",
+          "labels": [
+            "docs",
+            "p2"
+          ],
+          "checklist": [
+            "Second dev can deploy without call",
+            "SSH + team access noted"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Social v1",
+      "cards": [
+        {
+          "name": "[Design] Follow vs Friend",
+          "desc": "ADR в `docs/`: односторонний **Follow** (рекомендуется для MVP) vs взаимный Friend. Влияет на feed и notifications.",
+          "labels": [
+            "design",
+            "social",
+            "p1"
+          ],
+          "checklist": [
+            "Документ в docs/",
+            "API sketch согласован",
+            "Не вводить отдельный Post без решения"
+          ]
+        },
+        {
+          "name": "Follow / Unfollow API",
+          "desc": "Модель `Follow(follower, following)`. Endpoints: follow/unfollow user, list followers/following.",
+          "labels": [
+            "backend",
+            "social",
+            "p1"
+          ],
+          "checklist": [
+            "POST/DELETE /users/{username}/follow/",
+            "GET followers / following",
+            "Unique constraint, no self-follow",
+            "OpenAPI updated"
+          ]
+        },
+        {
+          "name": "Following feed",
+          "desc": "`GET /feed/?cursor=` — public reviews от followed users, sort `-updated_at`.",
+          "labels": [
+            "backend",
+            "web",
+            "social",
+            "p1"
+          ],
+          "checklist": [
+            "Pagination",
+            "Only public reviews",
+            "Empty state copy",
+            "Web page or Home tab"
+          ]
+        },
+        {
+          "name": "Follow UI на профиле",
+          "desc": "Кнопка Follow/Following на `/u/[username]`, счётчики followers/following.",
+          "labels": [
+            "web",
+            "social",
+            "p2"
+          ],
+          "checklist": [
+            "Auth required to follow",
+            "State persists after reload",
+            "Cannot follow self"
+          ]
+        },
+        {
+          "name": "In-app notifications (minimal)",
+          "desc": "Модель Notification: comment on your review, new follower. `GET /notifications/`, mark read.",
+          "labels": [
+            "backend",
+            "web",
+            "social",
+            "p3"
+          ],
+          "checklist": [
+            "List + unread count",
+            "No email/push in v1",
+            "Link to target"
+          ]
+        },
+        {
+          "name": "Explore: Global / Following tabs",
+          "desc": "Табы на Explore или Home: существующие discover feeds + Following feed.",
+          "labels": [
+            "web",
+            "social",
+            "p2"
+          ],
+          "checklist": [
+            "Global feeds unchanged",
+            "Following tab when logged in",
+            "Deep link ok"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Mobile",
+      "cards": [
+        {
+          "name": "Форма отзыва в Expo",
+          "desc": "Product screen: rating, verdict, body, visibility — те же поля что web. API: `/products/{id}/reviews/`.",
+          "labels": [
+            "mobile",
+            "p1"
+          ],
+          "checklist": [
+            "Create + update review",
+            "One review per user enforced",
+            "JWT from AsyncStorage"
+          ]
+        },
+        {
+          "name": "Фото к отзыву (mobile)",
+          "desc": "Image picker + `POST /reviews/{id}/images/`.",
+          "labels": [
+            "mobile",
+            "p2"
+          ],
+          "checklist": [
+            "Pick from camera/gallery",
+            "Preview after upload",
+            "API URL = staging on device"
+          ]
+        },
+        {
+          "name": "Mobile auth polish",
+          "desc": "Clear errors on login; loading states.",
+          "labels": [
+            "mobile",
+            "p3"
+          ],
+          "checklist": [
+            "Invalid credentials message",
+            "Network error handling"
+          ]
+        },
+        {
+          "name": "EAS / local build docs",
+          "desc": "Док в `mobile/README.md`: Expo Go vs EAS cloud (15/mo) vs `eas build --local` on Mac.",
+          "labels": [
+            "mobile",
+            "docs",
+            "p2"
+          ],
+          "checklist": [
+            "EXPO_PUBLIC_API_URL for device",
+            "TestFlight steps outlined",
+            "Apple Developer $99 noted"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Later (post-MVP)",
+      "cards": [
+        {
+          "name": "Nutrition / E-numbers / country rules",
+          "desc": "OFF nutrients + additive database; what is banned where. Informational layer on product card.",
+          "labels": [
+            "later"
+          ],
+          "checklist": []
+        },
+        {
+          "name": "Price compare & affiliates",
+          "desc": "Price aggregation, outbound links, partner tracking.",
+          "labels": [
+            "later"
+          ],
+          "checklist": []
+        },
+        {
+          "name": "Push notifications",
+          "desc": "FCM/APNs after in-app notifications proven.",
+          "labels": [
+            "later"
+          ],
+          "checklist": []
+        },
+        {
+          "name": "Review version history",
+          "desc": "Store edits history; currently overwrite only.",
+          "labels": [
+            "later"
+          ],
+          "checklist": []
+        },
+        {
+          "name": "Admin merge duplicates UI",
+          "desc": "`merged_into` flow from PRODUCT_IDENTITY.md.",
+          "labels": [
+            "later"
+          ],
+          "checklist": []
+        },
+        {
+          "name": "Rebuyly rebrand",
+          "desc": "Domain, UI copy, app.json bundle ids when final.",
+          "labels": [
+            "later"
+          ],
+          "checklist": []
+        }
+      ]
+    }
+  ],
+  "trelloExport": {
+    "name": "Scanno MVP Backlog",
+    "desc": "Import via JSON Power-Up or API. See docs/BACKLOG.md",
+    "labels": [
+      {
+        "id": "lbl-web",
+        "name": "web",
+        "color": "blue"
+      },
+      {
+        "id": "lbl-backend",
+        "name": "backend",
+        "color": "purple"
+      },
+      {
+        "id": "lbl-mobile",
+        "name": "mobile",
+        "color": "green"
+      },
+      {
+        "id": "lbl-infra",
+        "name": "infra",
+        "color": "orange"
+      },
+      {
+        "id": "lbl-social",
+        "name": "social",
+        "color": "pink"
+      },
+      {
+        "id": "lbl-mvp",
+        "name": "mvp",
+        "color": "red"
+      },
+      {
+        "id": "lbl-p1",
+        "name": "p1",
+        "color": "red"
+      },
+      {
+        "id": "lbl-p2",
+        "name": "p2",
+        "color": "yellow"
+      },
+      {
+        "id": "lbl-p3",
+        "name": "p3",
+        "color": "sky"
+      },
+      {
+        "id": "lbl-design",
+        "name": "design",
+        "color": "lime"
+      },
+      {
+        "id": "lbl-docs",
+        "name": "docs",
+        "color": "black"
+      },
+      {
+        "id": "lbl-later",
+        "name": "later",
+        "color": "black"
+      }
+    ],
+    "lists": [
+      {
+        "id": "list-mvp",
+        "name": "MVP — доделать",
+        "closed": false,
+        "pos": 16384
+      },
+      {
+        "id": "list-deploy",
+        "name": "Deploy & staging",
+        "closed": false,
+        "pos": 32768
+      },
+      {
+        "id": "list-social",
+        "name": "Social v1",
+        "closed": false,
+        "pos": 49152
+      },
+      {
+        "id": "list-mobile",
+        "name": "Mobile",
+        "closed": false,
+        "pos": 65536
+      },
+      {
+        "id": "list-later",
+        "name": "Later (post-MVP)",
+        "closed": false,
+        "pos": 81920
+      }
+    ],
+    "cards": [
+      {
+        "id": "card-1",
+        "name": "Комментарии к отзывам (UI)",
+        "desc": "**Что:** показывать комментарии под каждым отзывом на `/products/[id]`; форма добавления для залогиненных.\n\n**API уже есть:** `GET/POST /reviews/{id}/comments/`, `api.addComment()` в web.\n\n**Не ломать:** приватный отзыв — комментарии только при доступе к отзыву.",
+        "idList": "list-mvp",
+        "pos": 16384,
+        "closed": false,
+        "idLabels": [
+          "lbl-web",
+          "lbl-mvp",
+          "lbl-p1"
+        ]
+      },
+      {
+        "id": "card-2",
+        "name": "Жалоба Report (UI)",
+        "desc": "**Что:** кнопка Report на отзыве (и позже на комментарии) → модалка reason + details.\n\n**API:** `POST /reports/` (`target_type`, `target_id`, `reason`).",
+        "idList": "list-mvp",
+        "pos": 32768,
+        "closed": false,
+        "idLabels": [
+          "lbl-web",
+          "lbl-mvp",
+          "lbl-p2"
+        ]
+      },
+      {
+        "id": "card-3",
+        "name": "Редактирование user-product на карточке",
+        "desc": "**Что:** inline edit name/brand/category/description для `source=user` и `can_edit_image`.\n\n**API:** `PATCH /products/{id}/` (`api.updateProduct`). Catalog/OFF — read-only.",
+        "idList": "list-mvp",
+        "pos": 49152,
+        "closed": false,
+        "idLabels": [
+          "lbl-web",
+          "lbl-backend",
+          "lbl-mvp",
+          "lbl-p2"
+        ]
+      },
+      {
+        "id": "card-4",
+        "name": "Настройки профиля",
+        "desc": "**Что:** страница `/settings` или `/me/edit`: display_name, bio, avatar.\n\n**Backend:** расширить `PATCH /auth/me/` или profile endpoint.",
+        "idList": "list-mvp",
+        "pos": 65536,
+        "closed": false,
+        "idLabels": [
+          "lbl-web",
+          "lbl-backend",
+          "lbl-mvp",
+          "lbl-p2"
+        ]
+      },
+      {
+        "id": "card-5",
+        "name": "Web: сканер штрихкода (камера)",
+        "desc": "**Что:** на `/search` — Scan via camera (не только ручной ввод). После scan → `lookupBarcode` → redirect на product.",
+        "idList": "list-mvp",
+        "pos": 81920,
+        "closed": false,
+        "idLabels": [
+          "lbl-web",
+          "lbl-mvp",
+          "lbl-p3"
+        ]
+      },
+      {
+        "id": "card-6",
+        "name": "Галерея фото отзывов на product page",
+        "desc": "**Что:** блок «Photos from shoppers» — все public review images в одной галерее + lightbox (сейчас фото только внутри ReviewCard).",
+        "idList": "list-mvp",
+        "pos": 98304,
+        "closed": false,
+        "idLabels": [
+          "lbl-web",
+          "lbl-mvp",
+          "lbl-p3"
+        ]
+      },
+      {
+        "id": "card-7",
+        "name": "Staging на DigitalOcean",
+        "desc": "**Что:** один droplet, Docker Compose (api + web + postgres + minio), Caddy/Nginx + Let's Encrypt.\n\n**URLs:** `app.<subdomain>`, `api.<subdomain>`.\n\n**Docs:** `docs/DEPLOY.md`.",
+        "idList": "list-deploy",
+        "pos": 16384,
+        "closed": false,
+        "idLabels": [
+          "lbl-infra",
+          "lbl-p1"
+        ]
+      },
+      {
+        "id": "card-8",
+        "name": "Production env checklist",
+        "desc": "`DJANGO_DEBUG=0`, strong SECRET_KEY, gunicorn, `NEXT_PUBLIC_API_URL`, USE_S3 or MinIO on server, сменить seed passwords.",
+        "idList": "list-deploy",
+        "pos": 32768,
+        "closed": false,
+        "idLabels": [
+          "lbl-infra",
+          "lbl-p1"
+        ]
+      },
+      {
+        "id": "card-9",
+        "name": "GitHub Actions CI",
+        "desc": "PR: backend migrate check + web `npm run build`.",
+        "idList": "list-deploy",
+        "pos": 49152,
+        "closed": false,
+        "idLabels": [
+          "lbl-infra",
+          "lbl-p2"
+        ]
+      },
+      {
+        "id": "card-10",
+        "name": "OFF import на staging",
+        "desc": "`python manage.py import_off_popular --per-combo 40` на staging DB для демо друзьям.",
+        "idList": "list-deploy",
+        "pos": 65536,
+        "closed": false,
+        "idLabels": [
+          "lbl-infra",
+          "lbl-p2"
+        ]
+      },
+      {
+        "id": "card-11",
+        "name": "Deploy runbook",
+        "desc": "Обновить `docs/DEPLOY.md`: DO, DNS, Caddy, pull + compose up, rollback.",
+        "idList": "list-deploy",
+        "pos": 81920,
+        "closed": false,
+        "idLabels": [
+          "lbl-docs",
+          "lbl-p2"
+        ]
+      },
+      {
+        "id": "card-12",
+        "name": "[Design] Follow vs Friend",
+        "desc": "ADR в `docs/`: односторонний **Follow** (рекомендуется для MVP) vs взаимный Friend. Влияет на feed и notifications.",
+        "idList": "list-social",
+        "pos": 16384,
+        "closed": false,
+        "idLabels": [
+          "lbl-design",
+          "lbl-social",
+          "lbl-p1"
+        ]
+      },
+      {
+        "id": "card-13",
+        "name": "Follow / Unfollow API",
+        "desc": "Модель `Follow(follower, following)`. Endpoints: follow/unfollow user, list followers/following.",
+        "idList": "list-social",
+        "pos": 32768,
+        "closed": false,
+        "idLabels": [
+          "lbl-backend",
+          "lbl-social",
+          "lbl-p1"
+        ]
+      },
+      {
+        "id": "card-14",
+        "name": "Following feed",
+        "desc": "`GET /feed/?cursor=` — public reviews от followed users, sort `-updated_at`.",
+        "idList": "list-social",
+        "pos": 49152,
+        "closed": false,
+        "idLabels": [
+          "lbl-backend",
+          "lbl-web",
+          "lbl-social",
+          "lbl-p1"
+        ]
+      },
+      {
+        "id": "card-15",
+        "name": "Follow UI на профиле",
+        "desc": "Кнопка Follow/Following на `/u/[username]`, счётчики followers/following.",
+        "idList": "list-social",
+        "pos": 65536,
+        "closed": false,
+        "idLabels": [
+          "lbl-web",
+          "lbl-social",
+          "lbl-p2"
+        ]
+      },
+      {
+        "id": "card-16",
+        "name": "In-app notifications (minimal)",
+        "desc": "Модель Notification: comment on your review, new follower. `GET /notifications/`, mark read.",
+        "idList": "list-social",
+        "pos": 81920,
+        "closed": false,
+        "idLabels": [
+          "lbl-backend",
+          "lbl-web",
+          "lbl-social",
+          "lbl-p3"
+        ]
+      },
+      {
+        "id": "card-17",
+        "name": "Explore: Global / Following tabs",
+        "desc": "Табы на Explore или Home: существующие discover feeds + Following feed.",
+        "idList": "list-social",
+        "pos": 98304,
+        "closed": false,
+        "idLabels": [
+          "lbl-web",
+          "lbl-social",
+          "lbl-p2"
+        ]
+      },
+      {
+        "id": "card-18",
+        "name": "Форма отзыва в Expo",
+        "desc": "Product screen: rating, verdict, body, visibility — те же поля что web. API: `/products/{id}/reviews/`.",
+        "idList": "list-mobile",
+        "pos": 16384,
+        "closed": false,
+        "idLabels": [
+          "lbl-mobile",
+          "lbl-p1"
+        ]
+      },
+      {
+        "id": "card-19",
+        "name": "Фото к отзыву (mobile)",
+        "desc": "Image picker + `POST /reviews/{id}/images/`.",
+        "idList": "list-mobile",
+        "pos": 32768,
+        "closed": false,
+        "idLabels": [
+          "lbl-mobile",
+          "lbl-p2"
+        ]
+      },
+      {
+        "id": "card-20",
+        "name": "Mobile auth polish",
+        "desc": "Clear errors on login; loading states.",
+        "idList": "list-mobile",
+        "pos": 49152,
+        "closed": false,
+        "idLabels": [
+          "lbl-mobile",
+          "lbl-p3"
+        ]
+      },
+      {
+        "id": "card-21",
+        "name": "EAS / local build docs",
+        "desc": "Док в `mobile/README.md`: Expo Go vs EAS cloud (15/mo) vs `eas build --local` on Mac.",
+        "idList": "list-mobile",
+        "pos": 65536,
+        "closed": false,
+        "idLabels": [
+          "lbl-mobile",
+          "lbl-docs",
+          "lbl-p2"
+        ]
+      },
+      {
+        "id": "card-22",
+        "name": "Nutrition / E-numbers / country rules",
+        "desc": "OFF nutrients + additive database; what is banned where. Informational layer on product card.",
+        "idList": "list-later",
+        "pos": 16384,
+        "closed": false,
+        "idLabels": [
+          "lbl-later"
+        ]
+      },
+      {
+        "id": "card-23",
+        "name": "Price compare & affiliates",
+        "desc": "Price aggregation, outbound links, partner tracking.",
+        "idList": "list-later",
+        "pos": 32768,
+        "closed": false,
+        "idLabels": [
+          "lbl-later"
+        ]
+      },
+      {
+        "id": "card-24",
+        "name": "Push notifications",
+        "desc": "FCM/APNs after in-app notifications proven.",
+        "idList": "list-later",
+        "pos": 49152,
+        "closed": false,
+        "idLabels": [
+          "lbl-later"
+        ]
+      },
+      {
+        "id": "card-25",
+        "name": "Review version history",
+        "desc": "Store edits history; currently overwrite only.",
+        "idList": "list-later",
+        "pos": 65536,
+        "closed": false,
+        "idLabels": [
+          "lbl-later"
+        ]
+      },
+      {
+        "id": "card-26",
+        "name": "Admin merge duplicates UI",
+        "desc": "`merged_into` flow from PRODUCT_IDENTITY.md.",
+        "idList": "list-later",
+        "pos": 81920,
+        "closed": false,
+        "idLabels": [
+          "lbl-later"
+        ]
+      },
+      {
+        "id": "card-27",
+        "name": "Rebuyly rebrand",
+        "desc": "Domain, UI copy, app.json bundle ids when final.",
+        "idList": "list-later",
+        "pos": 98304,
+        "closed": false,
+        "idLabels": [
+          "lbl-later"
+        ]
+      }
+    ],
+    "checklists": [
+      {
+        "id": "cl-1",
+        "name": "Acceptance",
+        "idCard": "card-1",
+        "checkItems": [
+          {
+            "id": "ci-1-0",
+            "name": "Список комментариев под отзывом",
+            "state": "incomplete",
+            "pos": 16384
+          },
+          {
+            "id": "ci-1-1",
+            "name": "Форма Add comment + optimistic или reload",
+            "state": "incomplete",
+            "pos": 32768
+          },
+          {
+            "id": "ci-1-2",
+            "name": "Счётчик comment_count обновляется",
+            "state": "incomplete",
+            "pos": 49152
+          },
+          {
+            "id": "ci-1-3",
+            "name": "Ошибки auth/403 обработаны",
+            "state": "incomplete",
+            "pos": 65536
+          }
+        ]
+      },
+      {
+        "id": "cl-2",
+        "name": "Acceptance",
+        "idCard": "card-2",
+        "checkItems": [
+          {
+            "id": "ci-2-0",
+            "name": "Кнопка Report на ReviewCard или product page",
+            "state": "incomplete",
+            "pos": 16384
+          },
+          {
+            "id": "ci-2-1",
+            "name": "Модалка с reason + optional details",
+            "state": "incomplete",
+            "pos": 32768
+          },
+          {
+            "id": "ci-2-2",
+            "name": "Только для auth",
+            "state": "incomplete",
+            "pos": 49152
+          },
+          {
+            "id": "ci-2-3",
+            "name": "Success toast без перезагрузки страницы",
+            "state": "incomplete",
+            "pos": 65536
+          }
+        ]
+      },
+      {
+        "id": "cl-3",
+        "name": "Acceptance",
+        "idCard": "card-3",
+        "checkItems": [
+          {
+            "id": "ci-3-0",
+            "name": "Кнопка Edit только для creator",
+            "state": "incomplete",
+            "pos": 16384
+          },
+          {
+            "id": "ci-3-1",
+            "name": "Catalog products не редактируются",
+            "state": "incomplete",
+            "pos": 32768
+          },
+          {
+            "id": "ci-3-2",
+            "name": "Сохранение через PATCH",
+            "state": "incomplete",
+            "pos": 49152
+          },
+          {
+            "id": "ci-3-3",
+            "name": "Описание видно после save",
+            "state": "incomplete",
+            "pos": 65536
+          }
+        ]
+      },
+      {
+        "id": "cl-4",
+        "name": "Acceptance",
+        "idCard": "card-4",
+        "checkItems": [
+          {
+            "id": "ci-4-0",
+            "name": "Форма display_name + bio",
+            "state": "incomplete",
+            "pos": 16384
+          },
+          {
+            "id": "ci-4-1",
+            "name": "Avatar upload (optional v1: URL or file)",
+            "state": "incomplete",
+            "pos": 32768
+          },
+          {
+            "id": "ci-4-2",
+            "name": "Изменения на `/u/[username]`",
+            "state": "incomplete",
+            "pos": 49152
+          },
+          {
+            "id": "ci-4-3",
+            "name": "Только свой профиль",
+            "state": "incomplete",
+            "pos": 65536
+          }
+        ]
+      },
+      {
+        "id": "cl-5",
+        "name": "Acceptance",
+        "idCard": "card-5",
+        "checkItems": [
+          {
+            "id": "ci-5-0",
+            "name": "Кнопка Scan + getUserMedia или библиотека",
+            "state": "incomplete",
+            "pos": 16384
+          },
+          {
+            "id": "ci-5-1",
+            "name": "EAN/UPC decode",
+            "state": "incomplete",
+            "pos": 32768
+          },
+          {
+            "id": "ci-5-2",
+            "name": "Redirect на product или manual create flow",
+            "state": "incomplete",
+            "pos": 49152
+          },
+          {
+            "id": "ci-5-3",
+            "name": "HTTPS note для prod (camera requires secure context)",
+            "state": "incomplete",
+            "pos": 65536
+          }
+        ]
+      },
+      {
+        "id": "cl-6",
+        "name": "Acceptance",
+        "idCard": "card-6",
+        "checkItems": [
+          {
+            "id": "ci-6-0",
+            "name": "Агрегация images из reviews",
+            "state": "incomplete",
+            "pos": 16384
+          },
+          {
+            "id": "ci-6-1",
+            "name": "Lightbox как у product photo",
+            "state": "incomplete",
+            "pos": 32768
+          },
+          {
+            "id": "ci-6-2",
+            "name": "Пустое состояние скрыто",
+            "state": "incomplete",
+            "pos": 49152
+          }
+        ]
+      },
+      {
+        "id": "cl-7",
+        "name": "Acceptance",
+        "idCard": "card-7",
+        "checkItems": [
+          {
+            "id": "ci-7-0",
+            "name": "Droplet 4GB RAM / 2 vCPU",
+            "state": "incomplete",
+            "pos": 16384
+          },
+          {
+            "id": "ci-7-1",
+            "name": "DNS A records",
+            "state": "incomplete",
+            "pos": 32768
+          },
+          {
+            "id": "ci-7-2",
+            "name": "HTTPS работает",
+            "state": "incomplete",
+            "pos": 49152
+          },
+          {
+            "id": "ci-7-3",
+            "name": "ALLOWED_HOSTS + CORS настроены",
+            "state": "incomplete",
+            "pos": 65536
+          },
+          {
+            "id": "ci-7-4",
+            "name": "Секреты не в git",
+            "state": "incomplete",
+            "pos": 81920
+          }
+        ]
+      },
+      {
+        "id": "cl-8",
+        "name": "Acceptance",
+        "idCard": "card-8",
+        "checkItems": [
+          {
+            "id": "ci-8-0",
+            "name": "backend/.env на сервере",
+            "state": "incomplete",
+            "pos": 16384
+          },
+          {
+            "id": "ci-8-1",
+            "name": "web env at build time",
+            "state": "incomplete",
+            "pos": 32768
+          },
+          {
+            "id": "ci-8-2",
+            "name": "Superuser создан",
+            "state": "incomplete",
+            "pos": 49152
+          },
+          {
+            "id": "ci-8-3",
+            "name": "seed dev passwords disabled",
+            "state": "incomplete",
+            "pos": 65536
+          }
+        ]
+      },
+      {
+        "id": "cl-9",
+        "name": "Acceptance",
+        "idCard": "card-9",
+        "checkItems": [
+          {
+            "id": "ci-9-0",
+            "name": "Workflow on pull_request",
+            "state": "incomplete",
+            "pos": 16384
+          },
+          {
+            "id": "ci-9-1",
+            "name": "Backend job passes",
+            "state": "incomplete",
+            "pos": 32768
+          },
+          {
+            "id": "ci-9-2",
+            "name": "Web build passes",
+            "state": "incomplete",
+            "pos": 49152
+          }
+        ]
+      },
+      {
+        "id": "cl-10",
+        "name": "Acceptance",
+        "idCard": "card-10",
+        "checkItems": [
+          {
+            "id": "ci-10-0",
+            "name": "Command documented in runbook",
+            "state": "incomplete",
+            "pos": 16384
+          },
+          {
+            "id": "ci-10-1",
+            "name": "Explore не пустой",
+            "state": "incomplete",
+            "pos": 32768
+          },
+          {
+            "id": "ci-10-2",
+            "name": "Barcode lookup works",
+            "state": "incomplete",
+            "pos": 49152
+          }
+        ]
+      },
+      {
+        "id": "cl-11",
+        "name": "Acceptance",
+        "idCard": "card-11",
+        "checkItems": [
+          {
+            "id": "ci-11-0",
+            "name": "Second dev can deploy without call",
+            "state": "incomplete",
+            "pos": 16384
+          },
+          {
+            "id": "ci-11-1",
+            "name": "SSH + team access noted",
+            "state": "incomplete",
+            "pos": 32768
+          }
+        ]
+      },
+      {
+        "id": "cl-12",
+        "name": "Acceptance",
+        "idCard": "card-12",
+        "checkItems": [
+          {
+            "id": "ci-12-0",
+            "name": "Документ в docs/",
+            "state": "incomplete",
+            "pos": 16384
+          },
+          {
+            "id": "ci-12-1",
+            "name": "API sketch согласован",
+            "state": "incomplete",
+            "pos": 32768
+          },
+          {
+            "id": "ci-12-2",
+            "name": "Не вводить отдельный Post без решения",
+            "state": "incomplete",
+            "pos": 49152
+          }
+        ]
+      },
+      {
+        "id": "cl-13",
+        "name": "Acceptance",
+        "idCard": "card-13",
+        "checkItems": [
+          {
+            "id": "ci-13-0",
+            "name": "POST/DELETE /users/{username}/follow/",
+            "state": "incomplete",
+            "pos": 16384
+          },
+          {
+            "id": "ci-13-1",
+            "name": "GET followers / following",
+            "state": "incomplete",
+            "pos": 32768
+          },
+          {
+            "id": "ci-13-2",
+            "name": "Unique constraint, no self-follow",
+            "state": "incomplete",
+            "pos": 49152
+          },
+          {
+            "id": "ci-13-3",
+            "name": "OpenAPI updated",
+            "state": "incomplete",
+            "pos": 65536
+          }
+        ]
+      },
+      {
+        "id": "cl-14",
+        "name": "Acceptance",
+        "idCard": "card-14",
+        "checkItems": [
+          {
+            "id": "ci-14-0",
+            "name": "Pagination",
+            "state": "incomplete",
+            "pos": 16384
+          },
+          {
+            "id": "ci-14-1",
+            "name": "Only public reviews",
+            "state": "incomplete",
+            "pos": 32768
+          },
+          {
+            "id": "ci-14-2",
+            "name": "Empty state copy",
+            "state": "incomplete",
+            "pos": 49152
+          },
+          {
+            "id": "ci-14-3",
+            "name": "Web page or Home tab",
+            "state": "incomplete",
+            "pos": 65536
+          }
+        ]
+      },
+      {
+        "id": "cl-15",
+        "name": "Acceptance",
+        "idCard": "card-15",
+        "checkItems": [
+          {
+            "id": "ci-15-0",
+            "name": "Auth required to follow",
+            "state": "incomplete",
+            "pos": 16384
+          },
+          {
+            "id": "ci-15-1",
+            "name": "State persists after reload",
+            "state": "incomplete",
+            "pos": 32768
+          },
+          {
+            "id": "ci-15-2",
+            "name": "Cannot follow self",
+            "state": "incomplete",
+            "pos": 49152
+          }
+        ]
+      },
+      {
+        "id": "cl-16",
+        "name": "Acceptance",
+        "idCard": "card-16",
+        "checkItems": [
+          {
+            "id": "ci-16-0",
+            "name": "List + unread count",
+            "state": "incomplete",
+            "pos": 16384
+          },
+          {
+            "id": "ci-16-1",
+            "name": "No email/push in v1",
+            "state": "incomplete",
+            "pos": 32768
+          },
+          {
+            "id": "ci-16-2",
+            "name": "Link to target",
+            "state": "incomplete",
+            "pos": 49152
+          }
+        ]
+      },
+      {
+        "id": "cl-17",
+        "name": "Acceptance",
+        "idCard": "card-17",
+        "checkItems": [
+          {
+            "id": "ci-17-0",
+            "name": "Global feeds unchanged",
+            "state": "incomplete",
+            "pos": 16384
+          },
+          {
+            "id": "ci-17-1",
+            "name": "Following tab when logged in",
+            "state": "incomplete",
+            "pos": 32768
+          },
+          {
+            "id": "ci-17-2",
+            "name": "Deep link ok",
+            "state": "incomplete",
+            "pos": 49152
+          }
+        ]
+      },
+      {
+        "id": "cl-18",
+        "name": "Acceptance",
+        "idCard": "card-18",
+        "checkItems": [
+          {
+            "id": "ci-18-0",
+            "name": "Create + update review",
+            "state": "incomplete",
+            "pos": 16384
+          },
+          {
+            "id": "ci-18-1",
+            "name": "One review per user enforced",
+            "state": "incomplete",
+            "pos": 32768
+          },
+          {
+            "id": "ci-18-2",
+            "name": "JWT from AsyncStorage",
+            "state": "incomplete",
+            "pos": 49152
+          }
+        ]
+      },
+      {
+        "id": "cl-19",
+        "name": "Acceptance",
+        "idCard": "card-19",
+        "checkItems": [
+          {
+            "id": "ci-19-0",
+            "name": "Pick from camera/gallery",
+            "state": "incomplete",
+            "pos": 16384
+          },
+          {
+            "id": "ci-19-1",
+            "name": "Preview after upload",
+            "state": "incomplete",
+            "pos": 32768
+          },
+          {
+            "id": "ci-19-2",
+            "name": "API URL = staging on device",
+            "state": "incomplete",
+            "pos": 49152
+          }
+        ]
+      },
+      {
+        "id": "cl-20",
+        "name": "Acceptance",
+        "idCard": "card-20",
+        "checkItems": [
+          {
+            "id": "ci-20-0",
+            "name": "Invalid credentials message",
+            "state": "incomplete",
+            "pos": 16384
+          },
+          {
+            "id": "ci-20-1",
+            "name": "Network error handling",
+            "state": "incomplete",
+            "pos": 32768
+          }
+        ]
+      },
+      {
+        "id": "cl-21",
+        "name": "Acceptance",
+        "idCard": "card-21",
+        "checkItems": [
+          {
+            "id": "ci-21-0",
+            "name": "EXPO_PUBLIC_API_URL for device",
+            "state": "incomplete",
+            "pos": 16384
+          },
+          {
+            "id": "ci-21-1",
+            "name": "TestFlight steps outlined",
+            "state": "incomplete",
+            "pos": 32768
+          },
+          {
+            "id": "ci-21-2",
+            "name": "Apple Developer $99 noted",
+            "state": "incomplete",
+            "pos": 49152
+          }
+        ]
+      }
+    ]
+  }
+}

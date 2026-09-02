@@ -1,0 +1,21 @@
+# Copy to /etc/caddy/Caddyfile (or include from there).
+# Replace example.com with your domain. DNS A records must point to this VPS.
+#
+#   app.example.com   -> web :3000
+#   api.example.com   -> api :8000
+#   media.example.com -> minio :9000 (public read for product/review images)
+
+app.example.com {
+	encode gzip
+	reverse_proxy 127.0.0.1:3000
+}
+
+api.example.com {
+	encode gzip
+	reverse_proxy 127.0.0.1:8000
+}
+
+media.example.com {
+	encode gzip
+	reverse_proxy 127.0.0.1:9000
+}
