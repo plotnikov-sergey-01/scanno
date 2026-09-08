@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import Link from "@/components/LoadingProvider";
 import { api } from "@/lib/api";
 import { ProductCard, ProductCardGrid } from "@/components/ProductCard";
 import { ReviewCard } from "@/components/ReviewCard";
+import { LoadingLabel } from "@/components/Spinner";
 import type { Product, Review } from "@/lib/types";
 
 const FEEDS = [
@@ -27,6 +28,7 @@ export default function ExplorePage() {
   const [layout, setLayout] = useState<"list" | "grid">("grid");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [browseLoading, setBrowseLoading] = useState(true);
 
   useEffect(() => {
     setLoading(true);
@@ -51,10 +53,12 @@ export default function ExplorePage() {
     if (minRating) params.min_rating = minRating;
     if (minNever) params.min_never_again_pct = minNever;
     if (category.trim()) params.category = category.trim();
+    setBrowseLoading(true);
     api
       .browse(params)
       .then((data) => setBrowse(data.results))
-      .catch(() => setBrowse([]));
+      .catch(() => setBrowse([]))
+      .finally(() => setBrowseLoading(false));
   }, [sort, minRating, minNever, category]);
 
   return (
@@ -103,7 +107,7 @@ export default function ExplorePage() {
 
       {error && <p className="mt-4 text-sm text-verdict-never">{error}</p>}
       {loading ? (
-        <p className="mt-6 text-ink-700/70">Loading…</p>
+        <LoadingLabel className="mt-6" />
       ) : feed === "recent_reviews" ? (
         <div className="mt-6">
           {reviews.length === 0 ? (
@@ -215,7 +219,9 @@ export default function ExplorePage() {
           </div>
         </div>
         <div className="mt-4">
-          {layout === "grid" ? (
+          {browseLoading ? (
+            <LoadingLabel />
+          ) : layout === "grid" ? (
             <ProductCardGrid products={browse} />
           ) : (
             browse.map((p) => <ProductCard key={p.id} product={p} />)

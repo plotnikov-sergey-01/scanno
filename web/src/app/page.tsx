@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import Link from "@/components/LoadingProvider";
 import { useAuth } from "@/lib/auth";
 import { api } from "@/lib/api";
 import { ProductCardGrid } from "@/components/ProductCard";
+import { LoadingLabel } from "@/components/Spinner";
 import type { Product } from "@/lib/types";
 
 export default function HomePage() {
@@ -13,6 +14,7 @@ export default function HomePage() {
   const [best, setBest] = useState<Product[]>([]);
   const [worst, setWorst] = useState<Product[]>([]);
   const [fresh, setFresh] = useState<Product[]>([]);
+  const [feedsLoading, setFeedsLoading] = useState(true);
 
   useEffect(() => {
     Promise.all([
@@ -27,7 +29,8 @@ export default function HomePage() {
       })
       .catch(() => {
         /* empty feeds are fine */
-      });
+      })
+      .finally(() => setFeedsLoading(false));
   }, []);
 
   return (
@@ -87,7 +90,13 @@ export default function HomePage() {
         ))}
       </section>
 
-      {best.length > 0 && (
+      {feedsLoading && (
+        <section className="border-t border-ink-100 py-10">
+          <LoadingLabel />
+        </section>
+      )}
+
+      {!feedsLoading && best.length > 0 && (
         <section className="border-t border-ink-100 py-10">
           <div className="mb-4 flex items-end justify-between gap-3">
             <div>
@@ -102,7 +111,7 @@ export default function HomePage() {
         </section>
       )}
 
-      {worst.length > 0 && (
+      {!feedsLoading && worst.length > 0 && (
         <section className="border-t border-ink-100 py-10">
           <div className="mb-4 flex items-end justify-between gap-3">
             <div>
@@ -117,7 +126,7 @@ export default function HomePage() {
         </section>
       )}
 
-      {fresh.length > 0 && (
+      {!feedsLoading && fresh.length > 0 && (
         <section className="border-t border-ink-100 py-10">
           <div className="mb-4 flex items-end justify-between gap-3">
             <div>

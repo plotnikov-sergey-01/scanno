@@ -18,3 +18,46 @@ body {
 a {
   @apply transition-colors;
 }
+
+@keyframes scanno-loader-rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.scanno-loader {
+  --color-1: #00b4ef;
+  --size: 0.7px;
+
+  width: calc(48 * var(--size));
+  height: calc(48 * var(--size));
+  border: calc(5 * var(--size)) dotted var(--color-1);
+  border-radius: 50%;
+  display: inline-block;
+  position: relative;
+  box-sizing: border-box;
+  animation: scanno-loader-rotate 2s linear infinite;
+}
+
+.scanno-loader-sm {
+  --size: 0.4px;
+}
+
+.scanno-loader-on-dark {
+  --color-1: #f4f7fb;
+}
+
+.scanno-loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  background: rgba(244, 247, 251, 0.92);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  cursor: wait;
+}

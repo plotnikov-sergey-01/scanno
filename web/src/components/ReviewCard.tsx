@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/LoadingProvider";
 import type { Review } from "@/lib/types";
 import { Stars, VerdictBadge } from "./Verdict";
 
