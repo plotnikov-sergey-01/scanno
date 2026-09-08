@@ -18,6 +18,7 @@ dist/
 web/.env.local
 mobile/.env
 backend/.env
+data/off/
 
 *.tsbuildinfo
 

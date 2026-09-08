@@ -1,10 +1,12 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import Link from "@/components/LoadingProvider";
+import { useLoadingRouter as useRouter } from "@/components/LoadingProvider";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { PasswordInput } from "@/components/PasswordInput";
+import { Spinner } from "@/components/Spinner";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -12,16 +14,20 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setError("");
+    setSubmitting(true);
     try {
       await api.login(email, password);
       await refresh();
       router.push("/diary");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -37,16 +43,19 @@ export default function LoginPage() {
           placeholder="Email"
           className="w-full rounded-lg border border-ink-100 bg-white px-4 py-3"
         />
-        <input
-          type="password"
+        <PasswordInput
           required
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder="Password"
-          className="w-full rounded-lg border border-ink-100 bg-white px-4 py-3"
         />
         {error && <p className="text-sm text-verdict-never">{error}</p>}
-        <button type="submit" className="w-full rounded-lg bg-scan-500 py-3 font-semibold text-white hover:bg-scan-600">
+        <button
+          type="submit"
+          disabled={submitting}
+          className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-scan-500 py-3 font-semibold text-white hover:bg-scan-600 disabled:opacity-50"
+        >
+          {submitting && <Spinner size="sm" onDark />}
           Log in
         </button>
       </form>

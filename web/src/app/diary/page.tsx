@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import Link from "@/components/LoadingProvider";
+import { useLoadingRouter as useRouter } from "@/components/LoadingProvider";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { ReviewCard } from "@/components/ReviewCard";
+import { LoadingLabel } from "@/components/Spinner";
 import type { Review } from "@/lib/types";
 
 export default function DiaryPage() {
@@ -34,7 +35,7 @@ export default function DiaryPage() {
       .finally(() => setLoadingReviews(false));
   }, [user, filter]);
 
-  if (loading || !user) return <p>Loading…</p>;
+  if (loading || !user) return <LoadingLabel />;
 
   return (
     <div>
@@ -62,7 +63,7 @@ export default function DiaryPage() {
       {error && <p className="mt-4 text-sm text-verdict-never">{error}</p>}
       <div className="mt-6">
         {loadingReviews ? (
-          <p className="text-ink-700/70">Loading…</p>
+          <LoadingLabel />
         ) : reviews.length === 0 ? (
           <p className="text-ink-700/70">
             No entries yet. <Link href="/search" className="text-scan-600">Find a product</Link>.

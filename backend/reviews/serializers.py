@@ -85,6 +85,12 @@ class ReviewCreateUpdateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Invalid visibility.")
         return value
 
+    def validate_body(self, value):
+        value = value.strip()
+        if len(value) < 3:
+            raise serializers.ValidationError("Review text must be at least 3 characters.")
+        return value
+
     def validate_price_currency(self, value):
         if not value:
             return ""

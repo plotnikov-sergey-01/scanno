@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/LoadingProvider";
 import type { Product } from "@/lib/types";
 import { Stars } from "./Verdict";
 

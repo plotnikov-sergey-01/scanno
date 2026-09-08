@@ -1,15 +1,19 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import Link from "@/components/LoadingProvider";
+import { useParams } from "next/navigation";
+import { useLoadingRouter as useRouter } from "@/components/LoadingProvider";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { ReviewCard } from "@/components/ReviewCard";
 import { Stars } from "@/components/Verdict";
 import { ImageLightbox } from "@/components/ImageLightbox";
 import { ImageCropModal } from "@/components/ImageCropModal";
+import { LoadingLabel, Spinner } from "@/components/Spinner";
 import type { Product, Review } from "@/lib/types";
+
+const DEFAULT_PRICE_CURRENCY = "UAH";
 
 export default function ProductPage() {
   const params = useParams();
@@ -28,7 +32,7 @@ export default function ProductPage() {
     store_name: "",
     city: "",
     price_paid: "",
-    price_currency: "RUB",
+    price_currency: DEFAULT_PRICE_CURRENCY,
   });
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [cropFile, setCropFile] = useState<File | null>(null);
@@ -53,7 +57,7 @@ export default function ProductPage() {
           store_name: mine.store_name || "",
           city: mine.city || "",
           price_paid: mine.price_paid != null ? String(mine.price_paid) : "",
-          price_currency: mine.price_currency || "RUB",
+          price_currency: mine.price_currency === "RUB" ? DEFAULT_PRICE_CURRENCY : mine.price_currency || DEFAULT_PRICE_CURRENCY,
         });
       }
     } else {
@@ -114,20 +118,25 @@ export default function ProductPage() {
       router.push("/login");
       return;
     }
+    const reviewBody = form.body.trim();
+    if (reviewBody.length < 3) {
+      setError("Review text must be at least 3 characters.");
+      return;
+    }
     setSaving(true);
     setError("");
     try {
       const payload: Record<string, unknown> = {
         rating: form.rating,
         verdict: form.verdict,
-        body: form.body,
+        body: reviewBody,
         visibility: form.visibility,
         store_name: form.store_name,
         city: form.city,
       };
       if (form.price_paid.trim()) {
         payload.price_paid = form.price_paid.trim();
-        payload.price_currency = form.price_currency.trim().toUpperCase() || "RUB";
+        payload.price_currency = form.price_currency.trim().toUpperCase() || DEFAULT_PRICE_CURRENCY;
       } else {
         payload.price_paid = null;
         payload.price_currency = "";
@@ -148,7 +157,7 @@ export default function ProductPage() {
   }
 
   if (!product && !error) {
-    return <p className="text-ink-700">Loading…</p>;
+    return <LoadingLabel />;
   }
   if (!product) {
     return <p className="text-verdict-never">{error}</p>;
@@ -180,7 +189,8 @@ export default function ProductPage() {
             )}
           </button>
           {canEditImage && (
-            <label className="mt-2 block cursor-pointer text-sm text-scan-600 hover:underline">
+            <label className="mt-2 flex cursor-pointer items-center gap-2 text-sm text-scan-600 hover:underline">
+              {uploadingPhoto && <Spinner size="sm" />}
               {uploadingPhoto ? "Uploading…" : product.image_url ? "Replace photo" : "Add product photo"}
               <input
                 type="file"
@@ -306,20 +316,22 @@ export default function ProductPage() {
               onChange={(e) => setForm({ ...form, body: e.target.value })}
               placeholder="How did it taste? Would you buy it again?"
               rows={4}
+              required
+              minLength={3}
               className="w-full rounded-lg border border-ink-100 bg-white px-3 py-2"
             />
-            <div className="flex gap-2">
+            <div className="grid gap-2 sm:grid-cols-2">
               <input
                 value={form.store_name}
                 onChange={(e) => setForm({ ...form, store_name: e.target.value })}
                 placeholder="Store"
-                className="flex-1 rounded-lg border border-ink-100 px-3 py-2"
+                className="min-w-0 rounded-lg border border-ink-100 px-3 py-2"
               />
               <input
                 value={form.city}
                 onChange={(e) => setForm({ ...form, city: e.target.value })}
                 placeholder="City"
-                className="flex-1 rounded-lg border border-ink-100 px-3 py-2"
+                className="min-w-0 rounded-lg border border-ink-100 px-3 py-2"
               />
             </div>
             <div className="flex gap-2">
@@ -335,10 +347,9 @@ export default function ProductPage() {
                 onChange={(e) => setForm({ ...form, price_currency: e.target.value })}
                 className="w-28 rounded-lg border border-ink-100 bg-white px-2 py-2"
               >
-                <option value="RUB">RUB</option>
+                <option value="UAH">UAH</option>
                 <option value="EUR">EUR</option>
                 <option value="USD">USD</option>
-                <option value="UAH">UAH</option>
                 <option value="KZT">KZT</option>
                 <option value="GBP">GBP</option>
               </select>
@@ -385,8 +396,9 @@ export default function ProductPage() {
             <button
               type="submit"
               disabled={saving}
-              className="rounded-lg bg-scan-500 px-4 py-2 font-semibold text-white hover:bg-scan-600 disabled:opacity-50"
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-scan-500 px-4 py-2 font-semibold text-white hover:bg-scan-600 disabled:opacity-50"
             >
+              {saving && <Spinner size="sm" onDark />}
               {saving ? "Saving…" : myReview ? "Update review" : "Save review"}
             </button>
           </form>

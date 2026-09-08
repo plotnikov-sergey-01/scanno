@@ -42,25 +42,28 @@ class Command(BaseCommand):
                 "name": "Nutella",
                 "brand": "Ferrero",
                 "category": "Spreads",
-                "image_url": "https://images.openfoodfacts.org/images/products/301/762/042/2003/front_en.jpg",
+                "image_url": "https://images.openfoodfacts.org/images/products/301/762/042/2003/front_en.879.400.jpg",
             },
             {
                 "barcode": "5449000000996",
                 "name": "Coca-Cola",
                 "brand": "Coca-Cola",
                 "category": "Beverages",
-                "image_url": "",
+                "image_url": "https://images.openfoodfacts.org/images/products/544/900/000/0996/front_en.1107.400.jpg",
             },
             {
                 "barcode": "5000112589265",
                 "name": "Sprite",
                 "brand": "Coca-Cola",
                 "category": "Beverages",
-                "image_url": "",
+                "image_url": "https://images.openfoodfacts.org/images/products/500/011/254/8129/front_de.67.400.jpg",
             },
         ]
         for data in samples:
-            product, _ = Product.objects.get_or_create(barcode=data["barcode"], defaults=data)
+            product, created = Product.objects.get_or_create(barcode=data["barcode"], defaults=data)
+            if not created and product.image_url != data["image_url"]:
+                product.image_url = data["image_url"]
+                product.save(update_fields=["image_url"])
             Review.objects.get_or_create(
                 user=demo,
                 product=product,

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { api } from "@/lib/api";
 import { ReviewCard } from "@/components/ReviewCard";
+import { LoadingLabel } from "@/components/Spinner";
 import type { PublicUser, Review } from "@/lib/types";
 
 export default function UserProfilePage() {
@@ -23,7 +24,7 @@ export default function UserProfilePage() {
   }, [username]);
 
   if (error) return <p className="text-verdict-never">{error}</p>;
-  if (!profile) return <p>Loading…</p>;
+  if (!profile) return <LoadingLabel />;
 
   return (
     <div>

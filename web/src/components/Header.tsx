@@ -1,17 +1,21 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/LoadingProvider";
 import { useAuth } from "@/lib/auth";
+import { Spinner } from "@/components/Spinner";
 
 export function Header() {
-  const { user, logout } = useAuth();
+  const { user, loading, logout } = useAuth();
 
   return (
     <header className="sticky top-0 z-40 border-b border-ink-100/80 bg-ink-50/80 backdrop-blur-md">
       <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
-        <Link href="/" className="font-display text-2xl font-bold tracking-tight text-ink-900">
+        <Link
+          href="/"
+          className="inline-flex shrink-0 items-start gap-1 whitespace-nowrap font-display text-2xl font-bold tracking-tight text-ink-900"
+        >
           Scanno
-          <span className="ml-1 inline-block h-2 w-2 rounded-full bg-scan-500 align-super" />
+          <span className="mt-1.5 inline-block h-2 w-2 rounded-full bg-scan-500" />
         </Link>
         <nav className="flex items-center gap-4 text-sm font-medium text-ink-700">
           <Link href="/explore" className="hover:text-scan-600">
@@ -20,7 +24,9 @@ export function Header() {
           <Link href="/search" className="hover:text-scan-600">
             Search
           </Link>
-          {user ? (
+          {loading ? (
+            <Spinner size="sm" />
+          ) : user ? (
             <>
               <Link href="/diary" className="hover:text-scan-600">
                 Diary
@@ -31,7 +37,7 @@ export function Header() {
               <button
                 type="button"
                 onClick={logout}
-                className="rounded-md px-2 py-1 text-ink-700 hover:bg-ink-100"
+                className="rounded-md px-2 py-1 text-verdict-never hover:bg-verdict-never/10"
               >
                 Log out
               </button>

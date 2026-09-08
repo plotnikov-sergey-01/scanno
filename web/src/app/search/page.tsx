@@ -1,11 +1,12 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { useLoadingRouter as useRouter } from "@/components/LoadingProvider";
+import Link from "@/components/LoadingProvider";
 import { api, ApiError } from "@/lib/api";
 import { ProductCard, ProductCardGrid } from "@/components/ProductCard";
 import { ImageCropModal } from "@/components/ImageCropModal";
+import { LoadingLabel, Spinner } from "@/components/Spinner";
 import type { Product } from "@/lib/types";
 import { useAuth } from "@/lib/auth";
 
@@ -19,7 +20,7 @@ export default function SearchPage() {
   const [results, setResults] = useState<Product[]>([]);
   const [searched, setSearched] = useState(false);
   const [notice, setNotice] = useState<Notice | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [pending, setPending] = useState<"search" | "lookup" | "create" | null>(null);
   const [layout, setLayout] = useState<"list" | "grid">("list");
   const [manualOpen, setManualOpen] = useState(false);
   const [manual, setManual] = useState({
@@ -41,7 +42,7 @@ export default function SearchPage() {
     e.preventDefault();
     setNotice(null);
     setManualOpen(false);
-    setLoading(true);
+    setPending("search");
     setSearched(true);
     setResults([]);
     try {
@@ -60,7 +61,7 @@ export default function SearchPage() {
         text: err instanceof Error ? err.message : "Search failed",
       });
     } finally {
-      setLoading(false);
+      setPending(null);
     }
   }
 
@@ -68,7 +69,7 @@ export default function SearchPage() {
     e.preventDefault();
     setNotice(null);
     setManualOpen(false);
-    setLoading(true);
+    setPending("lookup");
     setSearched(true);
     setResults([]);
     try {
@@ -91,7 +92,7 @@ export default function SearchPage() {
         });
       }
     } finally {
-      setLoading(false);
+      setPending(null);
     }
   }
 
@@ -101,7 +102,7 @@ export default function SearchPage() {
       router.push("/login");
       return;
     }
-    setLoading(true);
+    setPending("create");
     setNotice(null);
     try {
       const product = await api.createProduct({
@@ -131,10 +132,11 @@ export default function SearchPage() {
         text: err instanceof Error ? err.message : "Create failed",
       });
     } finally {
-      setLoading(false);
+      setPending(null);
     }
   }
 
+  const loading = pending !== null;
   const showAddCta =
     searched &&
     !loading &&
@@ -160,9 +162,10 @@ export default function SearchPage() {
         <button
           type="submit"
           disabled={loading || !q.trim()}
-          className="rounded-lg bg-scan-500 px-4 py-3 font-semibold text-white hover:bg-scan-600 disabled:opacity-50"
+          className="inline-flex items-center justify-center gap-2 rounded-lg bg-scan-500 px-4 py-3 font-semibold text-white hover:bg-scan-600 disabled:opacity-50"
         >
-          {loading ? "…" : "Search"}
+          {pending === "search" && <Spinner size="sm" onDark />}
+          Search
         </button>
       </form>
 
@@ -176,8 +179,9 @@ export default function SearchPage() {
         <button
           type="submit"
           disabled={loading || !barcode.trim()}
-          className="rounded-lg border border-scan-500 px-4 py-3 font-semibold text-scan-600 hover:bg-scan-500/10 disabled:opacity-50"
+          className="inline-flex items-center justify-center gap-2 rounded-lg border border-scan-500 px-4 py-3 font-semibold text-scan-600 hover:bg-scan-500/10 disabled:opacity-50"
         >
+          {pending === "lookup" && <Spinner size="sm" />}
           Lookup
         </button>
       </form>
@@ -286,8 +290,9 @@ export default function SearchPage() {
           <button
             type="submit"
             disabled={!user || loading}
-            className="rounded-lg bg-ink-900 px-4 py-2 text-white disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-ink-900 px-4 py-2 text-white disabled:opacity-50"
           >
+            {pending === "create" && <Spinner size="sm" onDark />}
             Create product
           </button>
         </form>
@@ -305,32 +310,38 @@ export default function SearchPage() {
       )}
 
       <div className="mt-8">
-        {results.length > 0 && (
-          <div className="mb-3 flex justify-end gap-2">
-            <button
-              type="button"
-              onClick={() => setLayout("list")}
-              className={`rounded-md px-2 py-1 text-sm ${
-                layout === "list" ? "bg-scan-500 text-white" : "bg-white ring-1 ring-ink-100"
-              }`}
-            >
-              List
-            </button>
-            <button
-              type="button"
-              onClick={() => setLayout("grid")}
-              className={`rounded-md px-2 py-1 text-sm ${
-                layout === "grid" ? "bg-scan-500 text-white" : "bg-white ring-1 ring-ink-100"
-              }`}
-            >
-              Cards
-            </button>
-          </div>
-        )}
-        {layout === "grid" ? (
-          <ProductCardGrid products={results} />
+        {pending === "search" ? (
+          <LoadingLabel />
         ) : (
-          results.map((p) => <ProductCard key={p.id} product={p} />)
+          <>
+            {results.length > 0 && (
+              <div className="mb-3 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setLayout("list")}
+                  className={`rounded-md px-2 py-1 text-sm ${
+                    layout === "list" ? "bg-scan-500 text-white" : "bg-white ring-1 ring-ink-100"
+                  }`}
+                >
+                  List
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLayout("grid")}
+                  className={`rounded-md px-2 py-1 text-sm ${
+                    layout === "grid" ? "bg-scan-500 text-white" : "bg-white ring-1 ring-ink-100"
+                  }`}
+                >
+                  Cards
+                </button>
+              </div>
+            )}
+            {layout === "grid" ? (
+              <ProductCardGrid products={results} />
+            ) : (
+              results.map((p) => <ProductCard key={p.id} product={p} />)
+            )}
+          </>
         )}
       </div>
     </div>

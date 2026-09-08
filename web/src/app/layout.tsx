@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Header } from "@/components/Header";
+import { LoadingProvider } from "@/components/LoadingProvider";
 import { AuthProvider } from "@/lib/auth";
 import { AnalyticsProvider } from "@/components/AnalyticsProvider";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
@@ -38,8 +39,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <AnalyticsProvider>
           <AuthProvider>
             <ServiceWorkerRegister />
-            <Header />
-            <main className="mx-auto max-w-5xl px-4 py-8">{children}</main>
+            <LoadingProvider>
+              <Header />
+              <main className="mx-auto max-w-5xl px-4 py-8">{children}</main>
+            </LoadingProvider>
           </AuthProvider>
         </AnalyticsProvider>
       </body>
