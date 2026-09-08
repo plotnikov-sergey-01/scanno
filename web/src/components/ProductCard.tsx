@@ -1,6 +1,7 @@
 import Link from "@/components/LoadingProvider";
 import type { Product } from "@/lib/types";
 import { Stars } from "./Verdict";
+import styles from "./ProductCard.module.css";
 
 export function ProductCard({
   product,
@@ -15,37 +16,37 @@ export function ProductCard({
     return (
       <Link
         href={`/products/${product.id}`}
-        className="group flex flex-col overflow-hidden rounded-xl border border-ink-100 bg-white/80 transition hover:border-scan-400 hover:shadow-md"
+        className={styles.gridCard}
       >
-        <div className="flex h-40 items-center justify-center bg-ink-100 p-3">
+        <div className={styles.gridImageWrap}>
           {product.image_url ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={product.image_url} alt="" className="max-h-full max-w-full object-contain" />
+            <img src={product.image_url} alt="" className={styles.gridImage} />
           ) : (
-            <span className="text-xs text-ink-700/50">No photo</span>
+            <span className={styles.noPhoto}>No photo</span>
           )}
         </div>
-        <div className="flex flex-1 flex-col p-3">
-          <h3 className="line-clamp-2 font-display text-base font-semibold text-ink-900 group-hover:text-scan-600">
+        <div className={styles.gridContent}>
+          <h3 className={styles.gridTitle}>
             {product.name}
           </h3>
-          <p className="mt-1 truncate text-xs text-ink-700/70">
+          <p className={styles.gridMeta}>
             {[product.brand, product.category].filter(Boolean).join(" · ") || "—"}
           </p>
           {product.description && (
-            <p className="mt-2 line-clamp-2 text-xs text-ink-700/70">{product.description}</p>
+            <p className={styles.gridDescription}>{product.description}</p>
           )}
-          <div className="mt-auto pt-2 text-sm">
+          <div className={styles.gridStats}>
             {product.stats && product.stats.review_count > 0 ? (
-              <div className="flex flex-wrap items-center gap-2">
+              <div className={styles.statsRow}>
                 <Stars rating={Math.round(avg)} />
-                <span className="text-ink-700">{avg.toFixed(1)}</span>
+                <span className={styles.ratingText}>{avg.toFixed(1)}</span>
                 {product.stats.never_again_pct > 0 && (
-                  <span className="text-xs text-verdict-never">{product.stats.never_again_pct}% never</span>
+                  <span className={styles.neverShort}>{product.stats.never_again_pct}% never</span>
                 )}
               </div>
             ) : (
-              <span className="text-xs text-ink-700/60">No reviews yet</span>
+              <span className={styles.emptyStats}>No reviews yet</span>
             )}
           </div>
         </div>
@@ -56,38 +57,38 @@ export function ProductCard({
   return (
     <Link
       href={`/products/${product.id}`}
-      className="group flex gap-4 border-b border-ink-100 py-4 transition hover:bg-white/60"
+      className={styles.listCard}
     >
-      <div className="h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-ink-100">
+      <div className={styles.listImageWrap}>
         {product.image_url ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={product.image_url} alt="" className="h-full w-full object-contain" />
+          <img src={product.image_url} alt="" className={styles.listImage} />
         ) : (
-          <div className="flex h-full items-center justify-center text-xs text-ink-700/50">No photo</div>
+          <div className={styles.listNoPhoto}>No photo</div>
         )}
       </div>
-      <div className="min-w-0 flex-1">
-        <h3 className="truncate font-display text-lg font-semibold text-ink-900 group-hover:text-scan-600">
+      <div className={styles.listContent}>
+        <h3 className={styles.listTitle}>
           {product.name}
         </h3>
-        <p className="text-sm text-ink-700/80">
+        <p className={styles.listMeta}>
           {[product.brand, product.category].filter(Boolean).join(" · ") || "Unknown brand"}
         </p>
         {product.description && (
-          <p className="mt-1 line-clamp-2 text-sm text-ink-700/70">{product.description}</p>
+          <p className={styles.listDescription}>{product.description}</p>
         )}
-        <div className="mt-1 flex items-center gap-3 text-sm">
+        <div className={styles.listStats}>
           {product.stats && product.stats.review_count > 0 ? (
             <>
               <Stars rating={Math.round(avg)} />
-              <span className="text-ink-700">{avg.toFixed(1)}</span>
-              <span className="text-ink-700/60">{product.stats.review_count} reviews</span>
+              <span className={styles.ratingText}>{avg.toFixed(1)}</span>
+              <span className={styles.reviewCount}>{product.stats.review_count} reviews</span>
               {product.stats.never_again_pct > 0 && (
-                <span className="text-verdict-never">{product.stats.never_again_pct}% never again</span>
+                <span className={styles.neverText}>{product.stats.never_again_pct}% never again</span>
               )}
             </>
           ) : (
-            <span className="text-ink-700/60">No reviews yet</span>
+            <span className={styles.emptyStats}>No reviews yet</span>
           )}
         </div>
       </div>
@@ -97,7 +98,7 @@ export function ProductCard({
 
 export function ProductCardGrid({ products }: { products: Product[] }) {
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div className={styles.productGrid}>
       {products.map((p) => (
         <ProductCard key={p.id} product={p} layout="grid" />
       ))}

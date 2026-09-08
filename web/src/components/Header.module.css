@@ -1,0 +1,31 @@
+.header {
+  @apply sticky top-0 z-40 border-b border-ink-100/80 bg-ink-50/80 backdrop-blur-md;
+}
+
+.inner {
+  @apply mx-auto flex max-w-5xl items-center justify-between px-4 py-3;
+}
+
+.brand {
+  @apply inline-flex shrink-0 items-start gap-1 whitespace-nowrap font-display text-2xl font-bold tracking-tight text-ink-900;
+}
+
+.brandDot {
+  @apply mt-1.5 inline-block h-2 w-2 rounded-full bg-scan-500;
+}
+
+.nav {
+  @apply flex items-center gap-4 text-sm font-medium text-ink-700;
+}
+
+.navLink {
+  @apply hover:text-scan-600;
+}
+
+.logoutButton {
+  @apply rounded-md px-2 py-1 text-verdict-never hover:bg-verdict-never/10;
+}
+
+.signupLink {
+  @apply rounded-md bg-scan-500 px-3 py-1.5 text-white shadow-sm hover:bg-scan-600;
+}

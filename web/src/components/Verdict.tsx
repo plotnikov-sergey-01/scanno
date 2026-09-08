@@ -1,4 +1,5 @@
 import type { Review } from "@/lib/types";
+import styles from "./Verdict.module.css";
 
 const labels = {
   buy_again: "Buy again",
@@ -6,16 +7,16 @@ const labels = {
   neutral: "Neutral",
 } as const;
 
-const styles = {
-  buy_again: "bg-verdict-buy/15 text-verdict-buy ring-verdict-buy/30",
-  never_again: "bg-verdict-never/15 text-verdict-never ring-verdict-never/30",
-  neutral: "bg-verdict-neutral/15 text-verdict-neutral ring-verdict-neutral/30",
+const verdictClasses = {
+  buy_again: styles.buyAgain,
+  never_again: styles.neverAgain,
+  neutral: styles.neutral,
 } as const;
 
 export function VerdictBadge({ verdict }: { verdict: Review["verdict"] }) {
   return (
     <span
-      className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold ring-1 ring-inset ${styles[verdict]}`}
+      className={`${styles.badge} ${verdictClasses[verdict]}`}
     >
       {labels[verdict]}
     </span>
@@ -24,9 +25,9 @@ export function VerdictBadge({ verdict }: { verdict: Review["verdict"] }) {
 
 export function Stars({ rating }: { rating: number }) {
   return (
-    <span className="font-display tracking-widest text-scan-600" aria-label={`${rating} of 5`}>
+    <span className={styles.stars} aria-label={`${rating} of 5`}>
       {"★".repeat(rating)}
-      <span className="text-ink-100">{"★".repeat(5 - rating)}</span>
+      <span className={styles.emptyStars}>{"★".repeat(5 - rating)}</span>
     </span>
   );
 }

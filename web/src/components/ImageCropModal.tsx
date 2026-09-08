@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import styles from "./ImageCropModal.module.css";
 
 type Props = {
   file: File;
@@ -125,13 +126,13 @@ export function ImageCropModal({ file, onCancel, onConfirm }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink-900/80 p-4">
-      <div className="max-w-full rounded-xl bg-white p-4 shadow-xl">
-        <h3 className="font-display text-lg font-bold">Crop photo</h3>
-        <p className="mt-1 text-sm text-ink-700/80">Drag on the image to select the area to keep.</p>
+    <div className={styles.overlay}>
+      <div className={styles.dialog}>
+        <h3 className={styles.title}>Crop photo</h3>
+        <p className={styles.description}>Drag on the image to select the area to keep.</p>
         <canvas
           ref={canvasRef}
-          className="mt-3 max-w-full touch-none rounded-lg border border-ink-100"
+          className={styles.canvas}
           onMouseDown={onDown}
           onMouseMove={onMove}
           onMouseUp={onUp}
@@ -140,8 +141,8 @@ export function ImageCropModal({ file, onCancel, onConfirm }: Props) {
           onTouchMove={onMove}
           onTouchEnd={onUp}
         />
-        <div className="mt-4 flex justify-end gap-2">
-          <button type="button" onClick={onCancel} className="rounded-md px-3 py-2 text-ink-700 hover:bg-ink-100">
+        <div className={styles.actions}>
+          <button type="button" onClick={onCancel} className={styles.secondaryButton}>
             Cancel
           </button>
           <button
@@ -151,11 +152,11 @@ export function ImageCropModal({ file, onCancel, onConfirm }: Props) {
                 setRect({ x: 0, y: 0, w: canvasRef.current.width, h: canvasRef.current.height });
               }
             }}
-            className="rounded-md px-3 py-2 text-ink-700 hover:bg-ink-100"
+            className={styles.secondaryButton}
           >
             Use full image
           </button>
-          <button type="button" onClick={confirm} className="rounded-md bg-scan-500 px-3 py-2 font-semibold text-white">
+          <button type="button" onClick={confirm} className={styles.primaryButton}>
             Apply
           </button>
         </div>

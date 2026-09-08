@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useRef,  useState  } from "react";
 import { useLoadingRouter as useRouter } from "@/components/LoadingProvider";
 import Link from "@/components/LoadingProvider";
 import { api, ApiError } from "@/lib/api";
@@ -9,12 +9,19 @@ import { ImageCropModal } from "@/components/ImageCropModal";
 import { LoadingLabel, Spinner } from "@/components/Spinner";
 import type { Product } from "@/lib/types";
 import { useAuth } from "@/lib/auth";
+import { BrowserMultiFormatReader } from "@zxing/browser";
+
 
 type Notice = { kind: "info" | "error"; text: string };
 
 export default function SearchPage() {
   const { user } = useAuth();
   const router = useRouter();
+  const [scannerOpen, setScannerOpen] = useState(false);
+  const [scannerError, setScannerError] = useState<string | null>(null);
+  const [scannerStatus, setScannerStatus] = useState("Point your camera at a barcode");
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const scannerControlRef = useRef<{stop: () => void} | null>(null);
   const [q, setQ] = useState("");
   const [barcode, setBarcode] = useState("");
   const [results, setResults] = useState<Product[]>([]);
@@ -65,36 +72,101 @@ export default function SearchPage() {
     }
   }
 
-  async function onLookup(e: FormEvent) {
-    e.preventDefault();
+  async function lookupBarcodeValue(value: string) {
+    const clean = value.trim();
+    if (!clean) return ;
+
     setNotice(null);
     setManualOpen(false);
     setPending("lookup");
     setSearched(true);
     setResults([]);
+
     try {
-      const product = await api.lookupBarcode(barcode.trim());
+      const product = await api.lookupBarcode(clean);
       router.push(`/products/${product.id}`);
-    } catch (err) {
+    } catch (err){
       if (err instanceof ApiError && err.status === 404) {
         setNotice({
-          kind: "info",
-          text: "Product not found by this barcode.",
+          kind : "info",
+          text: "Product not found by this barcode",
         });
-        setManual((m) => ({ ...m, barcode: barcode.trim() }));
-      } else if (err instanceof ApiError && err.status === 401) {
-        setNotice({ kind: "error", text: "Please log in to continue." });
+        setManual((m) =>({...m, barcode: clean}));
+      } else if (err instanceof ApiError && err.status === 401){
+        setNotice({ kind: "error", text : "Please log in to continue."});
         router.push("/login");
       } else {
         setNotice({
-          kind: "error",
-          text: err instanceof Error ? err.message : "Lookup failed",
+          kind : "error",
+          text : err instanceof Error ? err.message : "Lookup failed",
         });
-      }
+      } 
     } finally {
       setPending(null);
     }
   }
+
+  async function onLookup(e: FormEvent) {
+   e.preventDefault();
+   await lookupBarcodeValue(barcode);
+  }
+
+  function closeScanner() {
+    scannerControlRef.current?.stop();
+    scannerControlRef.current = null;
+    setScannerOpen(false);
+    setScannerError(null);
+    setScannerStatus("Point your camera at a barcode");
+  }
+
+  useEffect(() => {
+    if (!scannerOpen || !videoRef.current) return;
+
+    let cancelled = false;
+    let controls : { stop: () => void} | null = null;
+    const reader = new BrowserMultiFormatReader();
+
+    async function startScanner() {
+      try {
+        setScannerError(null);
+        setScannerStatus("Starting camera...");
+         controls = await reader.decodeFromVideoDevice(
+          undefined,
+          videoRef.current!,
+          async (result) => {
+            if (!result || cancelled) return;
+
+            const scannedBarcode =result.getText();
+            cancelled = true;
+
+            setBarcode(scannedBarcode);
+            setScannerStatus(`Found ${scannedBarcode}`);
+            controls?.stop();
+            scannerControlRef.current = null;
+            setScannerOpen(false);
+            await lookupBarcodeValue(scannedBarcode);
+          }
+        );
+
+        scannerControlRef.current = controls;
+        setScannerStatus("Point your camera at a barcode");
+      } catch (err) {
+        setScannerError(
+          err instanceof Error
+          ? err.message
+          : "Camera could not be started."
+        );
+        setScannerStatus("Scanner unavailable");
+      }
+    }
+    startScanner();
+    return () => {
+      cancelled = true;
+      controls?.stop();
+      scannerControlRef.current?.stop();
+      scannerControlRef.current = null;
+    };
+  }, [scannerOpen]);
 
   async function onManual(e: FormEvent) {
     e.preventDefault();
@@ -184,6 +256,13 @@ export default function SearchPage() {
           {pending === "lookup" && <Spinner size="sm" />}
           Lookup
         </button>
+        <button
+        type="button"
+        disabled={loading}
+        onClick={() => setScannerOpen(true)}
+        className="inline-flex items-center justify-center gap-2 rounded-lg bg-ink-900 px-4 py-3 font-semibold text-white hover:bg-ink-700 disabled:opacity-50">
+          Scanning
+        </button>
       </form>
 
       {notice && (
@@ -218,6 +297,40 @@ export default function SearchPage() {
               to create it.
             </p>
           )}
+        </div>
+      )}
+
+      {scannerOpen && (
+        <div className="fixed inset-0 z-50 bg-ink-900/90 p-4">
+          <div className="mx-auto flex h-full max-w-md flex-col">
+            <div className="mb-3 flex items-center justify-between gap-3 text-white">
+              <div>
+                <h2 className="font-display text-xl font-bold">Scan barcode</h2>
+                <p className="text-sm text-white/70">{scannerStatus}</p>
+              </div>
+              <button
+              type="button"
+              onClick={closeScanner}
+              className="rounded-md bg-white/10 px-3 py-2 text-sm font-semibold hover:bg-white/20">
+                Close
+              </button>
+            </div>
+            <div className="relative flex-1 overflow-hidden rounded-xl bg-black">
+              <video 
+              ref={videoRef}
+              className="h-full w-full object-cover"
+              muted
+              playsInline />
+
+              <div className="pointer-events-none absolute inset-x-8 top-1/2 h-28 -translate-y-1/2 rounded-lg border-2 border-scan-400" ></div>
+            </div>
+
+            {scannerError && (
+              <p className="mt-3 rounded-lg bg-verdict-never/20 px-3 py-2 text-sm text-white">
+                {scannerError}
+              </p>
+            )}
+          </div>
         </div>
       )}
 

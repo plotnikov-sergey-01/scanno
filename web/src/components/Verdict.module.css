@@ -1,0 +1,23 @@
+.badge {
+  @apply inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold ring-1 ring-inset;
+}
+
+.buyAgain {
+  @apply bg-verdict-buy/15 text-verdict-buy ring-verdict-buy/30;
+}
+
+.neverAgain {
+  @apply bg-verdict-never/15 text-verdict-never ring-verdict-never/30;
+}
+
+.neutral {
+  @apply bg-verdict-neutral/15 text-verdict-neutral ring-verdict-neutral/30;
+}
+
+.stars {
+  @apply font-display tracking-widest text-scan-600;
+}
+
+.emptyStars {
+  @apply text-ink-100;
+}

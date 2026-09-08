@@ -1,3 +1,5 @@
+import styles from "./Spinner.module.css";
+
 type SpinnerSize = "sm" | "md";
 
 export function Spinner({
@@ -9,11 +11,11 @@ export function Spinner({
   onDark?: boolean;
   className?: string;
 }) {
-  const sizeClass = size === "sm" ? "scanno-loader-sm" : "";
-  const toneClass = onDark ? "scanno-loader-on-dark" : "";
+  const sizeClass = size === "sm" ? styles.loaderSmall : "";
+  const toneClass = onDark ? styles.loaderOnDark : "";
   return (
     <span
-      className={`scanno-loader shrink-0 ${sizeClass} ${toneClass} ${className}`.trim()}
+      className={`${styles.loader} ${sizeClass} ${toneClass} ${className}`.trim()}
       aria-hidden
     />
   );
@@ -21,7 +23,7 @@ export function Spinner({
 
 export function LoadingLabel({ className = "" }: { className?: string }) {
   return (
-    <div className={`flex items-center gap-2 text-sm text-ink-700/70 ${className}`.trim()} role="status">
+    <div className={`${styles.loadingLabel} ${className}`.trim()} role="status">
       <Spinner size="sm" />
       <span>Loading...</span>
     </div>

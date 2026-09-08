@@ -1,0 +1,39 @@
+.card {
+  @apply border-b border-ink-100 py-5;
+}
+
+.header {
+  @apply flex flex-wrap items-center gap-2;
+}
+
+.author {
+  @apply font-semibold text-ink-900 hover:text-scan-600;
+}
+
+.body {
+  @apply mt-2 whitespace-pre-wrap text-ink-700;
+}
+
+.meta {
+  @apply mt-1 text-xs text-ink-700/60;
+}
+
+.images {
+  @apply mt-3 flex gap-2 overflow-x-auto;
+}
+
+.imageButton {
+  @apply shrink-0;
+}
+
+.image {
+  @apply h-24 w-24 rounded-md bg-ink-100 object-contain;
+}
+
+.date {
+  @apply mt-2 text-xs text-ink-700/50;
+}
+
+.dateDetail {
+  @apply text-ink-700/40;
+}

@@ -1,0 +1,36 @@
+@keyframes loaderRotate {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.loader {
+  --color-1: #00b4ef;
+  --size: 0.7px;
+
+  width: calc(48 * var(--size));
+  height: calc(48 * var(--size));
+  border: calc(5 * var(--size)) dotted var(--color-1);
+  border-radius: 50%;
+  display: inline-block;
+  position: relative;
+  box-sizing: border-box;
+  animation: loaderRotate 2s linear infinite;
+  @apply shrink-0;
+}
+
+.loaderSmall {
+  --size: 0.4px;
+}
+
+.loaderOnDark {
+  --color-1: #f4f7fb;
+}
+
+.loadingLabel {
+  @apply flex items-center gap-2 text-sm text-ink-700/70;
+}

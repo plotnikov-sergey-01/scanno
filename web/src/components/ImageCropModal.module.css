@@ -1,0 +1,31 @@
+.overlay {
+  @apply fixed inset-0 z-50 flex items-center justify-center bg-ink-900/80 p-4;
+}
+
+.dialog {
+  @apply max-w-full rounded-xl bg-white p-4 shadow-xl;
+}
+
+.title {
+  @apply font-display text-lg font-bold;
+}
+
+.description {
+  @apply mt-1 text-sm text-ink-700/80;
+}
+
+.canvas {
+  @apply mt-3 max-w-full touch-none rounded-lg border border-ink-100;
+}
+
+.actions {
+  @apply mt-4 flex justify-end gap-2;
+}
+
+.secondaryButton {
+  @apply rounded-md px-3 py-2 text-ink-700 hover:bg-ink-100;
+}
+
+.primaryButton {
+  @apply rounded-md bg-scan-500 px-3 py-2 font-semibold text-white;
+}

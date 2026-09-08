@@ -1,0 +1,108 @@
+.gridCard {
+  @apply flex flex-col overflow-hidden rounded-xl border border-ink-100 bg-white/80 transition hover:border-scan-400 hover:shadow-md;
+}
+
+.gridImageWrap {
+  @apply flex h-40 items-center justify-center bg-ink-100 p-3;
+}
+
+.gridImage {
+  @apply max-h-full max-w-full object-contain;
+}
+
+.noPhoto,
+.listNoPhoto {
+  @apply text-xs text-ink-700/50;
+}
+
+.gridContent {
+  @apply flex flex-1 flex-col p-3;
+}
+
+.gridTitle {
+  @apply line-clamp-2 font-display text-base font-semibold text-ink-900;
+}
+
+.gridCard:hover .gridTitle {
+  @apply text-scan-600;
+}
+
+.gridMeta {
+  @apply mt-1 truncate text-xs text-ink-700/70;
+}
+
+.gridDescription {
+  @apply mt-2 line-clamp-2 text-xs text-ink-700/70;
+}
+
+.gridStats {
+  @apply mt-auto pt-2 text-sm;
+}
+
+.statsRow {
+  @apply flex flex-wrap items-center gap-2;
+}
+
+.ratingText {
+  @apply text-ink-700;
+}
+
+.neverShort {
+  @apply text-xs text-verdict-never;
+}
+
+.emptyStats {
+  @apply text-xs text-ink-700/60;
+}
+
+.listCard {
+  @apply flex gap-4 border-b border-ink-100 py-4 transition hover:bg-white/60;
+}
+
+.listImageWrap {
+  @apply h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-ink-100;
+}
+
+.listImage {
+  @apply h-full w-full object-contain;
+}
+
+.listNoPhoto {
+  @apply flex h-full items-center justify-center;
+}
+
+.listContent {
+  @apply min-w-0 flex-1;
+}
+
+.listTitle {
+  @apply truncate font-display text-lg font-semibold text-ink-900;
+}
+
+.listCard:hover .listTitle {
+  @apply text-scan-600;
+}
+
+.listMeta {
+  @apply text-sm text-ink-700/80;
+}
+
+.listDescription {
+  @apply mt-1 line-clamp-2 text-sm text-ink-700/70;
+}
+
+.listStats {
+  @apply mt-1 flex items-center gap-3 text-sm;
+}
+
+.reviewCount {
+  @apply text-ink-700/60;
+}
+
+.neverText {
+  @apply text-verdict-never;
+}
+
+.productGrid {
+  @apply grid gap-4 sm:grid-cols-2 lg:grid-cols-3;
+}

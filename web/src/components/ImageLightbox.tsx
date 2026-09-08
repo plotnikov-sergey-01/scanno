@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useCallback } from "react";
+import styles from "./ImageLightbox.module.css";
 
 type Props = {
   images: string[];
@@ -40,14 +41,14 @@ export function ImageLightbox({ images, index, onClose, onIndexChange }: Props) 
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-ink-900/90 p-4"
+      className={styles.overlay}
       role="dialog"
       aria-modal="true"
       onClick={onClose}
     >
       <button
         type="button"
-        className="absolute right-4 top-4 rounded-md bg-white/10 px-3 py-1 text-white hover:bg-white/20"
+        className={styles.closeButton}
         onClick={onClose}
       >
         Close
@@ -56,7 +57,7 @@ export function ImageLightbox({ images, index, onClose, onIndexChange }: Props) 
         <>
           <button
             type="button"
-            className="absolute left-3 rounded-full bg-white/10 px-3 py-2 text-white hover:bg-white/20"
+            className={styles.previousButton}
             onClick={(e) => {
               e.stopPropagation();
               go(-1);
@@ -66,7 +67,7 @@ export function ImageLightbox({ images, index, onClose, onIndexChange }: Props) 
           </button>
           <button
             type="button"
-            className="absolute right-3 rounded-full bg-white/10 px-3 py-2 text-white hover:bg-white/20"
+            className={styles.nextButton}
             onClick={(e) => {
               e.stopPropagation();
               go(1);
@@ -80,11 +81,11 @@ export function ImageLightbox({ images, index, onClose, onIndexChange }: Props) 
       <img
         src={current}
         alt=""
-        className="max-h-[90vh] max-w-[95vw] object-contain"
+        className={styles.image}
         onClick={(e) => e.stopPropagation()}
       />
       {images.length > 1 && (
-        <p className="absolute bottom-4 text-sm text-white/80">
+        <p className={styles.counter}>
           {index + 1} / {images.length}
         </p>
       )}

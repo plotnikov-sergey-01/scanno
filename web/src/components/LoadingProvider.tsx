@@ -4,6 +4,8 @@ import { createContext, useCallback, useContext, useEffect, useState, useTransit
 import NextLink from "next/link";
 import { useRouter } from "next/navigation";
 import type { ComponentProps, ReactNode } from "react";
+import { Spinner } from "./Spinner";
+import styles from "./LoadingProvider.module.css";
 
 const LoadingContext = createContext({
   register: (): (() => void) => () => {},
@@ -30,8 +32,8 @@ export function LoadingProvider({ children }: { children: ReactNode }) {
     <LoadingContext.Provider value={{ register, navigate }}>
       <div inert={busy} aria-busy={busy}>{children}</div>
       {busy && (
-        <div className="scanno-loading-overlay" role="status" aria-label="Loading">
-          <span className="scanno-loader" aria-hidden="true" />
+        <div className={styles.overlay} role="status" aria-label="Loading">
+          <Spinner />
         </div>
       )}
     </LoadingContext.Provider>

@@ -11,3 +11,4 @@ alwaysApply: true
 - Product rules: one review/user/product; barcode is canonical key; catalog photos locked; user products editable only by creator. Details in `docs/PRODUCT_IDENTITY.md`.
 - Never commit secrets (`.env`, `.env.local`). Prefer `docs/ONBOARDING.md` + `AGENTS.md` for setup.
 - Keep diffs focused; follow existing patterns in each app.
+- Web component styling: keep component styles in colocated `ComponentName.module.css` files and import them as CSS Modules. Do not put Tailwind utility strings, inline `style={{ ... }}`, or component-specific CSS in JSX unless there is a narrow runtime-only reason such as canvas drawing logic.
