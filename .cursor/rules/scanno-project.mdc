@@ -11,4 +11,4 @@ alwaysApply: true
 - Product rules: one review/user/product; barcode is canonical key; catalog photos locked; user products editable only by creator. Details in `docs/PRODUCT_IDENTITY.md`.
 - Never commit secrets (`.env`, `.env.local`). Prefer `docs/ONBOARDING.md` + `AGENTS.md` for setup.
 - Keep diffs focused; follow existing patterns in each app.
-- Web component styling: keep component styles in colocated `ComponentName.module.css` files and import them as CSS Modules. Do not put Tailwind utility strings, inline `style={{ ... }}`, or component-specific CSS in JSX unless there is a narrow runtime-only reason such as canvas drawing logic.
+- Web styling: all JSX/TSX presentation styles for pages and components must live in colocated CSS Modules (`page.module.css`, `layout.module.css`, or `ComponentName.module.css`). JSX may compose imported `styles.*` classes and pass through a caller-supplied `className`, but must not contain Tailwind utility strings, inline `style={{ ... }}`, `<style>` blocks, or component-specific CSS. Narrow runtime-only drawing values, such as canvas paint colors, are allowed in code.

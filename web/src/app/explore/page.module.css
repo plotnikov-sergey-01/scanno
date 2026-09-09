@@ -1,0 +1,96 @@
+.title {
+  @apply font-display text-3xl font-bold;
+}
+
+.subtitle {
+  @apply mt-2 text-ink-700/80;
+}
+
+.feedFilters {
+  @apply mt-6 flex flex-wrap items-center gap-2;
+}
+
+.feedButton,
+.activeFeedButton {
+  @apply rounded-md px-3 py-1.5 text-sm font-medium;
+}
+
+.feedButton,
+.layoutButton {
+  @apply bg-white ring-1 ring-ink-100;
+}
+
+.feedButton {
+  @apply text-ink-700;
+}
+
+.activeFeedButton {
+  @apply bg-scan-500 text-white;
+}
+
+.layoutControls {
+  @apply ml-auto flex gap-2;
+}
+
+.layoutButton,
+.activeLayoutButton {
+  @apply rounded-md px-2 py-1 text-sm;
+}
+
+.activeLayoutButton {
+  @apply bg-ink-900 text-white;
+}
+
+.error {
+  @apply mt-4 text-sm text-verdict-never;
+}
+
+.loadingLabel,
+.results {
+  @apply mt-6;
+}
+
+.empty {
+  @apply text-ink-700/70;
+}
+
+.productLink {
+  @apply text-sm font-medium text-scan-600;
+}
+
+.neverMeta {
+  @apply text-xs text-verdict-never;
+}
+
+.reviewMeta {
+  @apply text-xs text-ink-700/60;
+}
+
+.browseSection {
+  @apply mt-14 border-t border-ink-100 pt-10;
+}
+
+.browseTitle {
+  @apply font-display text-2xl font-bold;
+}
+
+.browseFilters {
+  @apply mt-4 flex flex-wrap gap-3;
+}
+
+.fieldLabel {
+  @apply text-sm;
+}
+
+.select,
+.categoryInput {
+  @apply ml-2 rounded border border-ink-100 bg-white px-2 py-1;
+}
+
+.categoryInput {
+  @apply w-40;
+}
+
+.browseResults {
+  @apply mt-4;
+}

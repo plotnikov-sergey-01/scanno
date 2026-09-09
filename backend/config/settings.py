@@ -115,9 +115,10 @@ if USE_S3:
     AWS_QUERYSTRING_AUTH = False
     AWS_S3_FILE_OVERWRITE = False
     custom_domain = os.getenv("AWS_S3_CUSTOM_DOMAIN", "")
+    public_scheme = os.gatenv("AWS_S3_PUBLIC_URL_SHEME", "http")
     if custom_domain:
         AWS_S3_CUSTOM_DOMAIN = custom_domain
-        MEDIA_URL = f"http://{custom_domain}/"
+        MEDIA_URL = f"{public_scheme}://{custom_domain}/"
     DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

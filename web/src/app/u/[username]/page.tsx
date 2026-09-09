@@ -6,6 +6,7 @@ import { api } from "@/lib/api";
 import { ReviewCard } from "@/components/ReviewCard";
 import { LoadingLabel } from "@/components/Spinner";
 import type { PublicUser, Review } from "@/lib/types";
+import styles from "./page.module.css";
 
 export default function UserProfilePage() {
   const params = useParams();
@@ -23,24 +24,24 @@ export default function UserProfilePage() {
       .catch((err) => setError(err.message));
   }, [username]);
 
-  if (error) return <p className="text-verdict-never">{error}</p>;
+  if (error) return <p className={styles.error}>{error}</p>;
   if (!profile) return <LoadingLabel />;
 
   return (
     <div>
-      <h1 className="font-display text-3xl font-bold">
+      <h1 className={styles.title}>
         {profile.display_name || profile.username}
       </h1>
-      <p className="text-ink-700/70">@{profile.username}</p>
-      {profile.bio && <p className="mt-3 text-ink-700">{profile.bio}</p>}
-      <section className="mt-8">
-        <h2 className="font-display text-xl font-bold">Public reviews</h2>
+      <p className={styles.username}>@{profile.username}</p>
+      {profile.bio && <p className={styles.bio}>{profile.bio}</p>}
+      <section className={styles.reviewsSection}>
+        <h2 className={styles.sectionTitle}>Public reviews</h2>
         {reviews.length === 0 ? (
-          <p className="mt-2 text-ink-700/70">No public reviews yet.</p>
+          <p className={styles.empty}>No public reviews yet.</p>
         ) : (
           reviews.map((r) => (
             <div key={r.id}>
-              <a href={`/products/${r.product_id}`} className="text-sm text-scan-600">
+              <a href={`/products/${r.product_id}`} className={styles.productLink}>
                 {r.product_name}
               </a>
               <ReviewCard review={r} />

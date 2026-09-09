@@ -1,0 +1,45 @@
+.title {
+  @apply font-display text-3xl font-bold;
+}
+
+.subtitle {
+  @apply mt-2 text-ink-700/80;
+}
+
+.filters {
+  @apply mt-4 flex flex-wrap gap-2;
+}
+
+.filterButton,
+.activeFilterButton {
+  @apply rounded-md px-3 py-1.5 text-sm font-medium;
+}
+
+.filterButton {
+  @apply bg-white text-ink-700 ring-1 ring-ink-100;
+}
+
+.activeFilterButton {
+  @apply bg-scan-500 text-white;
+}
+
+.error {
+  @apply mt-4 text-sm text-verdict-never;
+}
+
+.reviews {
+  @apply mt-6;
+}
+
+.empty {
+  @apply text-ink-700/70;
+}
+
+.link,
+.productLink {
+  @apply text-scan-600;
+}
+
+.productLink {
+  @apply text-sm font-medium;
+}

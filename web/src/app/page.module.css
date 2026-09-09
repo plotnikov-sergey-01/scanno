@@ -1,0 +1,71 @@
+.root {
+  @apply relative overflow-hidden;
+}
+
+.hero {
+  @apply pb-12 pt-6 md:pt-12;
+}
+
+.brand {
+  @apply font-display text-5xl font-extrabold tracking-tight text-ink-900 md:text-7xl;
+}
+
+.heroTitle {
+  @apply mt-4 max-w-xl font-display text-2xl font-semibold leading-snug text-ink-700 md:text-3xl;
+}
+
+.heroCopy {
+  @apply mt-4 max-w-lg text-lg text-ink-700/80;
+}
+
+.heroActions {
+  @apply mt-8 flex flex-wrap gap-3;
+}
+
+.primaryLink {
+  @apply rounded-lg bg-scan-500 px-5 py-3 font-semibold text-white shadow-md shadow-scan-500/25 hover:bg-scan-600;
+}
+
+.secondaryLink {
+  @apply rounded-lg border border-ink-100 bg-white/70 px-5 py-3 font-semibold text-ink-900 hover:border-scan-400;
+}
+
+.features {
+  @apply grid gap-6 border-t border-ink-100 py-12 md:grid-cols-3;
+}
+
+.featureTitle {
+  @apply font-display text-xl font-bold text-ink-900;
+}
+
+.featureCopy {
+  @apply mt-2 text-ink-700/80;
+}
+
+.feedSection {
+  @apply border-t border-ink-100 py-10;
+}
+
+.sectionHeader {
+  @apply mb-4 flex items-end justify-between gap-3;
+}
+
+.buyTitle {
+  @apply font-display text-2xl font-bold text-verdict-buy;
+}
+
+.neverTitle {
+  @apply font-display text-2xl font-bold text-verdict-never;
+}
+
+.feedTitle {
+  @apply font-display text-2xl font-bold text-ink-900;
+}
+
+.sectionCopy {
+  @apply text-sm text-ink-700/70;
+}
+
+.sectionLink {
+  @apply text-sm font-medium text-scan-600 hover:underline;
+}

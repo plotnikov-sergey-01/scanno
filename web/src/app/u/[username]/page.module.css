@@ -1,0 +1,31 @@
+.error {
+  @apply text-verdict-never;
+}
+
+.title {
+  @apply font-display text-3xl font-bold;
+}
+
+.username {
+  @apply text-ink-700/70;
+}
+
+.bio {
+  @apply mt-3 text-ink-700;
+}
+
+.reviewsSection {
+  @apply mt-8;
+}
+
+.sectionTitle {
+  @apply font-display text-xl font-bold;
+}
+
+.empty {
+  @apply mt-2 text-ink-700/70;
+}
+
+.productLink {
+  @apply text-sm text-scan-600;
+}

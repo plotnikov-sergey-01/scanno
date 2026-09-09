@@ -1,0 +1,31 @@
+.root {
+  @apply mx-auto max-w-md;
+}
+
+.title {
+  @apply font-display text-3xl font-bold;
+}
+
+.form {
+  @apply mt-6 space-y-4;
+}
+
+.input {
+  @apply w-full rounded-lg border border-ink-100 bg-white px-4 py-3;
+}
+
+.error {
+  @apply text-sm text-verdict-never;
+}
+
+.submitButton {
+  @apply inline-flex w-full items-center justify-center gap-2 rounded-lg bg-scan-500 py-3 font-semibold text-white hover:bg-scan-600 disabled:opacity-50;
+}
+
+.footerText {
+  @apply mt-4 text-sm text-ink-700;
+}
+
+.link {
+  @apply text-scan-600;
+}

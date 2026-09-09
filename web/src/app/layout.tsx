@@ -5,6 +5,7 @@ import { LoadingProvider } from "@/components/LoadingProvider";
 import { AuthProvider } from "@/lib/auth";
 import { AnalyticsProvider } from "@/components/AnalyticsProvider";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
+import styles from "./layout.module.css";
 
 export const metadata: Metadata = {
   title: {
@@ -41,7 +42,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <ServiceWorkerRegister />
             <LoadingProvider>
               <Header />
-              <main className="mx-auto max-w-5xl px-4 py-8">{children}</main>
+              <main className={styles.main}>{children}</main>
             </LoadingProvider>
           </AuthProvider>
         </AnalyticsProvider>

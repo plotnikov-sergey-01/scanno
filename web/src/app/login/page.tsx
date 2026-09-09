@@ -7,6 +7,7 @@ import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { PasswordInput } from "@/components/PasswordInput";
 import { Spinner } from "@/components/Spinner";
+import styles from "./page.module.css";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -32,16 +33,16 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="mx-auto max-w-md">
-      <h1 className="font-display text-3xl font-bold">Log in</h1>
-      <form onSubmit={onSubmit} className="mt-6 space-y-4">
+    <div className={styles.root}>
+      <h1 className={styles.title}>Log in</h1>
+      <form onSubmit={onSubmit} className={styles.form}>
         <input
           type="email"
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="Email"
-          className="w-full rounded-lg border border-ink-100 bg-white px-4 py-3"
+          className={styles.input}
         />
         <PasswordInput
           required
@@ -49,18 +50,18 @@ export default function LoginPage() {
           onChange={(e) => setPassword(e.target.value)}
           placeholder="Password"
         />
-        {error && <p className="text-sm text-verdict-never">{error}</p>}
+        {error && <p className={styles.error}>{error}</p>}
         <button
           type="submit"
           disabled={submitting}
-          className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-scan-500 py-3 font-semibold text-white hover:bg-scan-600 disabled:opacity-50"
+          className={styles.submitButton}
         >
           {submitting && <Spinner size="sm" onDark />}
           Log in
         </button>
       </form>
-      <p className="mt-4 text-sm text-ink-700">
-        No account? <Link href="/register" className="text-scan-600">Sign up</Link>
+      <p className={styles.footerText}>
+        No account? <Link href="/register" className={styles.link}>Sign up</Link>
       </p>
     </div>
   );

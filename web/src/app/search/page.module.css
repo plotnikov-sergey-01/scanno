@@ -1,0 +1,166 @@
+.title {
+  @apply font-display text-3xl font-bold;
+}
+
+.subtitle {
+  @apply mt-2 text-ink-700/80;
+}
+
+.searchForm {
+  @apply mt-8 flex flex-col gap-2 sm:flex-row;
+}
+
+.lookupForm {
+  @apply mt-4 flex flex-col gap-2 sm:flex-row;
+}
+
+.searchInput {
+  @apply flex-1 rounded-lg border border-ink-100 bg-white px-4 py-3 outline-none ring-scan-400 focus:ring-2;
+}
+
+.barcodeInput {
+  @apply flex-1 rounded-lg border border-ink-100 bg-white px-4 py-3 font-mono outline-none ring-scan-400 focus:ring-2;
+}
+
+.primaryButton {
+  @apply inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-scan-500 px-4 py-3 font-semibold text-white hover:bg-scan-600 disabled:opacity-50;
+}
+
+.outlineButton {
+  @apply inline-flex shrink-0 items-center justify-center gap-2 rounded-lg border border-scan-500 px-4 py-3 font-semibold text-scan-600 hover:bg-scan-500/10 disabled:opacity-50;
+}
+
+.darkButton {
+  @apply inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-ink-900 px-4 py-3 font-semibold text-white hover:bg-ink-700 disabled:opacity-50;
+}
+
+.infoNotice,
+.errorNotice {
+  @apply mt-4 rounded-lg px-4 py-3 text-sm;
+}
+
+.infoNotice {
+  @apply bg-ink-100 text-ink-700;
+}
+
+.errorNotice {
+  @apply bg-verdict-never/10 text-verdict-never;
+}
+
+.addProductButton {
+  @apply mt-3 rounded-md bg-ink-900 px-3 py-1.5 text-sm font-semibold text-white hover:bg-ink-700;
+}
+
+.loginHint {
+  @apply mt-2 text-xs;
+}
+
+.link {
+  @apply text-scan-600;
+}
+
+.scannerOverlay {
+  @apply fixed inset-0 z-50 overflow-y-auto bg-ink-900/90 p-3 sm:p-4;
+}
+
+.scannerDialog {
+  @apply mx-auto flex min-h-full w-full max-w-md flex-col;
+}
+
+.scannerHeader {
+  @apply mb-3 flex shrink-0 items-start justify-between gap-3 text-white;
+}
+
+.scannerTitle {
+  @apply font-display text-xl font-bold;
+}
+
+.scannerStatus {
+  @apply text-sm text-white/70;
+}
+
+.scannerCloseButton {
+  @apply shrink-0 rounded-md bg-white/10 px-3 py-2 text-sm font-semibold hover:bg-white/20;
+}
+
+.videoFrame {
+  @apply relative min-h-80 flex-1 overflow-hidden rounded-xl bg-black;
+  height: min(72vh, 34rem);
+}
+
+.video {
+  @apply h-full w-full object-cover;
+}
+
+.scanTarget {
+  @apply pointer-events-none absolute inset-x-8 top-1/2 h-28 -translate-y-1/2 rounded-lg border-2 border-scan-400;
+}
+
+.scannerError {
+  @apply mt-3 rounded-lg bg-verdict-never/20 px-3 py-2 text-sm text-white;
+}
+
+.manualForm {
+  @apply mt-6 space-y-3 rounded-xl border border-ink-100 bg-white/80 p-4;
+}
+
+.manualHeader {
+  @apply flex items-center justify-between gap-2;
+}
+
+.manualTitle {
+  @apply font-display text-lg font-bold;
+}
+
+.closeManualButton {
+  @apply text-sm text-ink-700/70 hover:text-ink-900;
+}
+
+.manualLoginText {
+  @apply text-sm text-ink-700;
+}
+
+.manualInput {
+  @apply w-full rounded-lg border border-ink-100 px-3 py-2;
+}
+
+.manualBarcodeInput {
+  @apply w-full rounded-lg border border-ink-100 px-3 py-2 font-mono;
+}
+
+.fileLabel {
+  @apply block text-sm text-ink-700;
+}
+
+.fileInput {
+  @apply mt-1 block w-full text-sm;
+}
+
+.photoReady {
+  @apply text-xs text-ink-700/70;
+}
+
+.createButton {
+  @apply inline-flex items-center justify-center gap-2 rounded-lg bg-ink-900 px-4 py-2 text-white disabled:opacity-50;
+}
+
+.results {
+  @apply mt-8;
+}
+
+.resultControls {
+  @apply mb-3 flex justify-end gap-2;
+}
+
+.resultLayoutButton,
+.activeResultLayoutButton {
+  @apply rounded-md px-2 py-1 text-sm;
+}
+
+.resultLayoutButton {
+  @apply bg-white ring-1 ring-ink-100;
+}
+
+.activeResultLayoutButton {
+  @apply bg-scan-500 text-white;
+}

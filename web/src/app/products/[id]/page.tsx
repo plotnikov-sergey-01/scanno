@@ -12,6 +12,7 @@ import { ImageLightbox } from "@/components/ImageLightbox";
 import { ImageCropModal } from "@/components/ImageCropModal";
 import { LoadingLabel, Spinner } from "@/components/Spinner";
 import type { Product, Review } from "@/lib/types";
+import styles from "./page.module.css";
 
 const DEFAULT_PRICE_CURRENCY = "UAH";
 
@@ -160,7 +161,7 @@ export default function ProductPage() {
     return <LoadingLabel />;
   }
   if (!product) {
-    return <p className="text-verdict-never">{error}</p>;
+    return <p className={styles.error}>{error}</p>;
   }
 
   const stats = product.stats;
@@ -169,11 +170,11 @@ export default function ProductPage() {
 
   return (
     <div>
-      <div className="flex flex-col gap-6 md:flex-row">
-        <div className="shrink-0">
+      <div className={styles.productHeader}>
+        <div className={styles.mediaColumn}>
           <button
             type="button"
-            className="block h-52 w-52 overflow-hidden rounded-xl bg-ink-100"
+            className={styles.productImageButton}
             disabled={!product.image_url}
             onClick={() =>
               product.image_url && setLightbox({ images: gallery, index: 0 })
@@ -181,22 +182,22 @@ export default function ProductPage() {
           >
             {product.image_url ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={product.image_url} alt="" className="h-full w-full object-contain" />
+              <img src={product.image_url} alt="" className={styles.productImage} />
             ) : (
-              <div className="flex h-full items-center justify-center px-3 text-center text-xs text-ink-700/50">
+              <div className={styles.noProductPhoto}>
                 No product photo
               </div>
             )}
           </button>
           {canEditImage && (
-            <label className="mt-2 flex cursor-pointer items-center gap-2 text-sm text-scan-600 hover:underline">
+            <label className={styles.productPhotoLabel}>
               {uploadingPhoto && <Spinner size="sm" />}
               {uploadingPhoto ? "Uploading…" : product.image_url ? "Replace photo" : "Add product photo"}
               <input
                 type="file"
                 accept="image/*"
                 capture="environment"
-                className="hidden"
+                className={styles.hiddenInput}
                 disabled={uploadingPhoto}
                 onChange={(e) => onPickProductPhoto(e.target.files?.[0] || null)}
               />
@@ -204,43 +205,43 @@ export default function ProductPage() {
           )}
         </div>
         <div>
-          <h1 className="font-display text-3xl font-bold">{product.name}</h1>
-          <p className="mt-1 text-ink-700">
+          <h1 className={styles.title}>{product.name}</h1>
+          <p className={styles.productMeta}>
             {[product.brand, product.category].filter(Boolean).join(" · ")}
           </p>
           {product.description && (
-            <p className="mt-3 max-w-xl text-ink-700/90">{product.description}</p>
+            <p className={styles.description}>{product.description}</p>
           )}
           {product.barcode && (
-            <p className="mt-1 font-mono text-sm text-ink-700/60">{product.barcode}</p>
+            <p className={styles.barcode}>{product.barcode}</p>
           )}
           {stats && stats.review_count > 0 ? (
-            <div className="mt-4 space-y-1">
-              <div className="flex items-center gap-3">
+            <div className={styles.stats}>
+              <div className={styles.ratingRow}>
                 <Stars rating={Math.round(avg)} />
-                <span className="font-display text-2xl font-bold">{avg.toFixed(1)}</span>
-                <span className="text-ink-700/70">{stats.review_count} reviews</span>
+                <span className={styles.average}>{avg.toFixed(1)}</span>
+                <span className={styles.reviewCount}>{stats.review_count} reviews</span>
               </div>
-              <p className="text-sm">
-                <span className="text-verdict-buy">{stats.buy_again_count} buy again</span>
+              <p className={styles.verdictStats}>
+                <span className={styles.buyCount}>{stats.buy_again_count} buy again</span>
                 {" · "}
-                <span className="text-verdict-never">
+                <span className={styles.neverCount}>
                   {stats.never_again_pct}% never again
                 </span>
               </p>
             </div>
           ) : (
-            <p className="mt-4 text-ink-700/70">Be the first to review this product.</p>
+            <p className={styles.emptyStats}>Be the first to review this product.</p>
           )}
           {product.recent_prices && product.recent_prices.length > 0 && (
-            <div className="mt-4">
-              <p className="text-sm font-medium text-ink-900">Prices people paid</p>
-              <ul className="mt-1 space-y-0.5 text-sm text-ink-700/80">
+            <div className={styles.prices}>
+              <p className={styles.pricesTitle}>Prices people paid</p>
+              <ul className={styles.pricesList}>
                 {product.recent_prices.map((p, i) => (
                   <li key={`${p.amount}-${p.currency}-${i}`}>
                     {p.amount} {p.currency}
                     {(p.store_name || p.city) && (
-                      <span className="text-ink-700/50">
+                      <span className={styles.priceLocation}>
                         {" "}
                         · {[p.store_name, p.city].filter(Boolean).join(", ")}
                       </span>
@@ -253,32 +254,32 @@ export default function ProductPage() {
         </div>
       </div>
 
-      <section className="mt-10 border-t border-ink-100 pt-8">
-        <h2 className="font-display text-xl font-bold">
+      <section className={styles.reviewSection}>
+        <h2 className={styles.sectionTitle}>
           {myReview ? "Edit your review" : "Your review"}
         </h2>
         {myReview && (
-          <p className="mt-1 text-sm text-ink-700/70">
+          <p className={styles.reviewHint}>
             One review per product — updates replace your previous verdict. History of old versions
             is not shown (for now).
           </p>
         )}
         {!user ? (
-          <p className="mt-2 text-ink-700">
-            <Link href="/login" className="text-scan-600">
+          <p className={styles.loginPrompt}>
+            <Link href="/login" className={styles.link}>
               Log in
             </Link>{" "}
             to add a review.
           </p>
         ) : (
-          <form onSubmit={onSubmit} className="mt-4 space-y-3">
-            <div className="flex flex-wrap gap-4">
-              <label className="text-sm">
+          <form onSubmit={onSubmit} className={styles.reviewForm}>
+            <div className={styles.selectRow}>
+              <label className={styles.fieldLabel}>
                 Rating
                 <select
                   value={form.rating}
                   onChange={(e) => setForm({ ...form, rating: Number(e.target.value) })}
-                  className="ml-2 rounded border border-ink-100 bg-white px-2 py-1"
+                  className={styles.inlineSelect}
                 >
                   {[1, 2, 3, 4, 5].map((n) => (
                     <option key={n} value={n}>
@@ -287,24 +288,24 @@ export default function ProductPage() {
                   ))}
                 </select>
               </label>
-              <label className="text-sm">
+              <label className={styles.fieldLabel}>
                 Verdict
                 <select
                   value={form.verdict}
                   onChange={(e) => setForm({ ...form, verdict: e.target.value })}
-                  className="ml-2 rounded border border-ink-100 bg-white px-2 py-1"
+                  className={styles.inlineSelect}
                 >
                   <option value="buy_again">Buy again</option>
                   <option value="never_again">Never again</option>
                   <option value="neutral">Neutral</option>
                 </select>
               </label>
-              <label className="text-sm">
+              <label className={styles.fieldLabel}>
                 Visibility
                 <select
                   value={form.visibility}
                   onChange={(e) => setForm({ ...form, visibility: e.target.value })}
-                  className="ml-2 rounded border border-ink-100 bg-white px-2 py-1"
+                  className={styles.inlineSelect}
                 >
                   <option value="public">Public</option>
                   <option value="private">Private</option>
@@ -318,34 +319,34 @@ export default function ProductPage() {
               rows={4}
               required
               minLength={3}
-              className="w-full rounded-lg border border-ink-100 bg-white px-3 py-2"
+              className={styles.reviewTextarea}
             />
-            <div className="grid gap-2 sm:grid-cols-2">
+            <div className={styles.locationGrid}>
               <input
                 value={form.store_name}
                 onChange={(e) => setForm({ ...form, store_name: e.target.value })}
                 placeholder="Store"
-                className="min-w-0 rounded-lg border border-ink-100 px-3 py-2"
+                className={styles.locationInput}
               />
               <input
                 value={form.city}
                 onChange={(e) => setForm({ ...form, city: e.target.value })}
                 placeholder="City"
-                className="min-w-0 rounded-lg border border-ink-100 px-3 py-2"
+                className={styles.locationInput}
               />
             </div>
-            <div className="flex gap-2">
+            <div className={styles.priceRow}>
               <input
                 value={form.price_paid}
                 onChange={(e) => setForm({ ...form, price_paid: e.target.value })}
                 placeholder="Price paid"
                 inputMode="decimal"
-                className="flex-1 rounded-lg border border-ink-100 px-3 py-2"
+                className={styles.priceInput}
               />
               <select
                 value={form.price_currency}
                 onChange={(e) => setForm({ ...form, price_currency: e.target.value })}
-                className="w-28 rounded-lg border border-ink-100 bg-white px-2 py-2"
+                className={styles.currencySelect}
               >
                 <option value="UAH">UAH</option>
                 <option value="EUR">EUR</option>
@@ -354,26 +355,26 @@ export default function ProductPage() {
                 <option value="GBP">GBP</option>
               </select>
             </div>
-            <p className="text-xs text-ink-700/60">
+            <p className={styles.priceHint}>
               Price is what you paid (optional). Better than one global price for every country.
             </p>
             <div>
-              <label className="text-sm text-ink-700">
+              <label className={styles.fileLabel}>
                 Review photos (cropped before upload)
                 <input
                   type="file"
                   accept="image/*"
                   multiple
                   capture="environment"
-                  className="mt-1 block w-full text-sm"
+                  className={styles.fileInput}
                   onChange={(e) => onPickReviewPhotos(e.target.files)}
                 />
               </label>
               {pendingFiles.length > 0 && (
-                <p className="mt-1 text-xs text-ink-700/70">{pendingFiles.length} photo(s) ready</p>
+                <p className={styles.photoReady}>{pendingFiles.length} photo(s) ready</p>
               )}
               {myReview?.images?.length ? (
-                <div className="mt-2 flex gap-2 overflow-x-auto">
+                <div className={styles.reviewImages}>
                   {myReview.images.map((img, idx) => (
                     <button
                       key={img.id}
@@ -386,17 +387,17 @@ export default function ProductPage() {
                       }
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={img.image} alt="" className="h-20 w-20 rounded-md object-contain bg-ink-100" />
+                      <img src={img.image} alt="" className={styles.reviewImage} />
                     </button>
                   ))}
                 </div>
               ) : null}
             </div>
-            {error && <p className="text-sm text-verdict-never">{error}</p>}
+            {error && <p className={styles.formError}>{error}</p>}
             <button
               type="submit"
               disabled={saving}
-              className="inline-flex items-center justify-center gap-2 rounded-lg bg-scan-500 px-4 py-2 font-semibold text-white hover:bg-scan-600 disabled:opacity-50"
+              className={styles.submitButton}
             >
               {saving && <Spinner size="sm" onDark />}
               {saving ? "Saving…" : myReview ? "Update review" : "Save review"}
@@ -405,10 +406,10 @@ export default function ProductPage() {
         )}
       </section>
 
-      <section className="mt-10">
-        <h2 className="font-display text-xl font-bold">Reviews</h2>
+      <section className={styles.publicReviews}>
+        <h2 className={styles.sectionTitle}>Reviews</h2>
         {reviews.length === 0 ? (
-          <p className="mt-2 text-ink-700/70">No public reviews yet.</p>
+          <p className={styles.noReviews}>No public reviews yet.</p>
         ) : (
           reviews.map((r) => (
             <ReviewCard

@@ -7,6 +7,7 @@ import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { PasswordInput } from "@/components/PasswordInput";
 import { Spinner } from "@/components/Spinner";
+import styles from "./page.module.css";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -37,9 +38,9 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="mx-auto max-w-md">
-      <h1 className="font-display text-3xl font-bold">Create account</h1>
-      <form onSubmit={onSubmit} className="mt-6 space-y-4">
+    <div className={styles.root}>
+      <h1 className={styles.title}>Create account</h1>
+      <form onSubmit={onSubmit} className={styles.form}>
         {(["email", "username", "display_name", "password"] as const).map((field) =>
           field === "password" ? (
             <PasswordInput
@@ -62,22 +63,22 @@ export default function RegisterPage() {
                 ? "Display name"
                 : field.charAt(0).toUpperCase() + field.slice(1)
             }
-            className="w-full rounded-lg border border-ink-100 bg-white px-4 py-3"
+            className={styles.input}
           />
           )
         )}
-        {error && <p className="text-sm text-verdict-never">{error}</p>}
+        {error && <p className={styles.error}>{error}</p>}
         <button
           type="submit"
           disabled={submitting}
-          className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-scan-500 py-3 font-semibold text-white hover:bg-scan-600 disabled:opacity-50"
+          className={styles.submitButton}
         >
           {submitting && <Spinner size="sm" onDark />}
           Sign up
         </button>
       </form>
-      <p className="mt-4 text-sm text-ink-700">
-        Already have an account? <Link href="/login" className="text-scan-600">Log in</Link>
+      <p className={styles.footerText}>
+        Already have an account? <Link href="/login" className={styles.link}>Log in</Link>
       </p>
     </div>
   );

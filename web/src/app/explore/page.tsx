@@ -7,6 +7,7 @@ import { ProductCard, ProductCardGrid } from "@/components/ProductCard";
 import { ReviewCard } from "@/components/ReviewCard";
 import { LoadingLabel } from "@/components/Spinner";
 import type { Product, Review } from "@/lib/types";
+import styles from "./page.module.css";
 
 const FEEDS = [
   { id: "recent_reviews", label: "Fresh reviews" },
@@ -63,41 +64,35 @@ export default function ExplorePage() {
 
   return (
     <div>
-      <h1 className="font-display text-3xl font-bold">Explore</h1>
-      <p className="mt-2 text-ink-700/80">
+      <h1 className={styles.title}>Explore</h1>
+      <p className={styles.subtitle}>
         Browse what people loved, hated, and just added — no barcode required.
       </p>
 
-      <div className="mt-6 flex flex-wrap items-center gap-2">
+      <div className={styles.feedFilters}>
         {FEEDS.map((f) => (
           <button
             key={f.id}
             type="button"
             onClick={() => setFeed(f.id)}
-            className={`rounded-md px-3 py-1.5 text-sm font-medium ${
-              feed === f.id ? "bg-scan-500 text-white" : "bg-white text-ink-700 ring-1 ring-ink-100"
-            }`}
+            className={feed === f.id ? styles.activeFeedButton : styles.feedButton}
           >
             {f.label}
           </button>
         ))}
         {feed !== "recent_reviews" && (
-          <div className="ml-auto flex gap-2">
+          <div className={styles.layoutControls}>
             <button
               type="button"
               onClick={() => setLayout("list")}
-              className={`rounded-md px-2 py-1 text-sm ${
-                layout === "list" ? "bg-ink-900 text-white" : "bg-white ring-1 ring-ink-100"
-              }`}
+              className={layout === "list" ? styles.activeLayoutButton : styles.layoutButton}
             >
               List
             </button>
             <button
               type="button"
               onClick={() => setLayout("grid")}
-              className={`rounded-md px-2 py-1 text-sm ${
-                layout === "grid" ? "bg-ink-900 text-white" : "bg-white ring-1 ring-ink-100"
-              }`}
+              className={layout === "grid" ? styles.activeLayoutButton : styles.layoutButton}
             >
               Cards
             </button>
@@ -105,17 +100,17 @@ export default function ExplorePage() {
         )}
       </div>
 
-      {error && <p className="mt-4 text-sm text-verdict-never">{error}</p>}
+      {error && <p className={styles.error}>{error}</p>}
       {loading ? (
-        <LoadingLabel className="mt-6" />
+        <LoadingLabel className={styles.loadingLabel} />
       ) : feed === "recent_reviews" ? (
-        <div className="mt-6">
+        <div className={styles.results}>
           {reviews.length === 0 ? (
-            <p className="text-ink-700/70">No public reviews yet.</p>
+            <p className={styles.empty}>No public reviews yet.</p>
           ) : (
             reviews.map((r) => (
               <div key={r.id}>
-                <Link href={`/products/${r.product_id}`} className="text-sm font-medium text-scan-600">
+                <Link href={`/products/${r.product_id}`} className={styles.productLink}>
                   {r.product_name}
                 </Link>
                 <ReviewCard review={r} />
@@ -124,19 +119,19 @@ export default function ExplorePage() {
           )}
         </div>
       ) : (
-        <div className="mt-6">
+        <div className={styles.results}>
           {products.length === 0 ? (
-            <p className="text-ink-700/70">Nothing in this feed yet — add a few reviews.</p>
+            <p className={styles.empty}>Nothing in this feed yet — add a few reviews.</p>
           ) : layout === "grid" ? (
             <ProductCardGrid products={products} />
           ) : (
             products.map((p) => (
               <div key={p.id}>
                 {typeof p.period_never_again === "number" && (
-                  <p className="text-xs text-verdict-never">{p.period_never_again} never-again this week</p>
+                  <p className={styles.neverMeta}>{p.period_never_again} never-again this week</p>
                 )}
                 {typeof p.period_review_count === "number" && (
-                  <p className="text-xs text-ink-700/60">{p.period_review_count} reviews this week</p>
+                  <p className={styles.reviewMeta}>{p.period_review_count} reviews this week</p>
                 )}
                 <ProductCard product={p} />
               </div>
@@ -145,15 +140,15 @@ export default function ExplorePage() {
         </div>
       )}
 
-      <section className="mt-14 border-t border-ink-100 pt-10">
-        <h2 className="font-display text-2xl font-bold">Browse &amp; filter</h2>
-        <div className="mt-4 flex flex-wrap gap-3">
-          <label className="text-sm">
+      <section className={styles.browseSection}>
+        <h2 className={styles.browseTitle}>Browse &amp; filter</h2>
+        <div className={styles.browseFilters}>
+          <label className={styles.fieldLabel}>
             Sort
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value)}
-              className="ml-2 rounded border border-ink-100 bg-white px-2 py-1"
+              className={styles.select}
             >
               <option value="recent">Newest</option>
               <option value="rating">Best rated</option>
@@ -162,12 +157,12 @@ export default function ExplorePage() {
               <option value="name">Name</option>
             </select>
           </label>
-          <label className="text-sm">
+          <label className={styles.fieldLabel}>
             Min rating
             <select
               value={minRating}
               onChange={(e) => setMinRating(e.target.value)}
-              className="ml-2 rounded border border-ink-100 bg-white px-2 py-1"
+              className={styles.select}
             >
               <option value="">Any</option>
               <option value="3">3+</option>
@@ -175,12 +170,12 @@ export default function ExplorePage() {
               <option value="4.5">4.5+</option>
             </select>
           </label>
-          <label className="text-sm">
+          <label className={styles.fieldLabel}>
             Min never-again %
             <select
               value={minNever}
               onChange={(e) => setMinNever(e.target.value)}
-              className="ml-2 rounded border border-ink-100 bg-white px-2 py-1"
+              className={styles.select}
             >
               <option value="">Any</option>
               <option value="25">25%+</option>
@@ -188,37 +183,33 @@ export default function ExplorePage() {
               <option value="75">75%+</option>
             </select>
           </label>
-          <label className="text-sm">
+          <label className={styles.fieldLabel}>
             Category
             <input
               value={category}
               onChange={(e) => setCategory(e.target.value)}
               placeholder="e.g. Beverages"
-              className="ml-2 w-40 rounded border border-ink-100 bg-white px-2 py-1"
+              className={styles.categoryInput}
             />
           </label>
-          <div className="ml-auto flex gap-2">
+          <div className={styles.layoutControls}>
             <button
               type="button"
               onClick={() => setLayout("list")}
-              className={`rounded-md px-2 py-1 text-sm ${
-                layout === "list" ? "bg-ink-900 text-white" : "bg-white ring-1 ring-ink-100"
-              }`}
+              className={layout === "list" ? styles.activeLayoutButton : styles.layoutButton}
             >
               List
             </button>
             <button
               type="button"
               onClick={() => setLayout("grid")}
-              className={`rounded-md px-2 py-1 text-sm ${
-                layout === "grid" ? "bg-ink-900 text-white" : "bg-white ring-1 ring-ink-100"
-              }`}
+              className={layout === "grid" ? styles.activeLayoutButton : styles.layoutButton}
             >
               Cards
             </button>
           </div>
         </div>
-        <div className="mt-4">
+        <div className={styles.browseResults}>
           {browseLoading ? (
             <LoadingLabel />
           ) : layout === "grid" ? (

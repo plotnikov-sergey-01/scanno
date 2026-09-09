@@ -1,0 +1,195 @@
+.error {
+  @apply text-verdict-never;
+}
+
+.productHeader {
+  @apply flex flex-col gap-6 md:flex-row;
+}
+
+.mediaColumn {
+  @apply shrink-0;
+}
+
+.productImageButton {
+  @apply block h-52 w-52 overflow-hidden rounded-xl bg-ink-100;
+}
+
+.productImage {
+  @apply h-full w-full object-contain;
+}
+
+.noProductPhoto {
+  @apply flex h-full items-center justify-center px-3 text-center text-xs text-ink-700/50;
+}
+
+.productPhotoLabel {
+  @apply mt-2 flex cursor-pointer items-center gap-2 text-sm text-scan-600 hover:underline;
+}
+
+.hiddenInput {
+  @apply hidden;
+}
+
+.title {
+  @apply font-display text-3xl font-bold;
+}
+
+.productMeta {
+  @apply mt-1 text-ink-700;
+}
+
+.description {
+  @apply mt-3 max-w-xl text-ink-700/90;
+}
+
+.barcode {
+  @apply mt-1 font-mono text-sm text-ink-700/60;
+}
+
+.stats {
+  @apply mt-4 space-y-1;
+}
+
+.ratingRow {
+  @apply flex items-center gap-3;
+}
+
+.average {
+  @apply font-display text-2xl font-bold;
+}
+
+.reviewCount {
+  @apply text-ink-700/70;
+}
+
+.verdictStats {
+  @apply text-sm;
+}
+
+.buyCount {
+  @apply text-verdict-buy;
+}
+
+.neverCount {
+  @apply text-verdict-never;
+}
+
+.emptyStats {
+  @apply mt-4 text-ink-700/70;
+}
+
+.prices {
+  @apply mt-4;
+}
+
+.pricesTitle {
+  @apply text-sm font-medium text-ink-900;
+}
+
+.pricesList {
+  @apply mt-1 space-y-0.5 text-sm text-ink-700/80;
+}
+
+.priceLocation {
+  @apply text-ink-700/50;
+}
+
+.reviewSection {
+  @apply mt-10 border-t border-ink-100 pt-8;
+}
+
+.sectionTitle {
+  @apply font-display text-xl font-bold;
+}
+
+.reviewHint {
+  @apply mt-1 text-sm text-ink-700/70;
+}
+
+.loginPrompt {
+  @apply mt-2 text-ink-700;
+}
+
+.link {
+  @apply text-scan-600;
+}
+
+.reviewForm {
+  @apply mt-4 space-y-3;
+}
+
+.selectRow {
+  @apply flex flex-wrap gap-4;
+}
+
+.fieldLabel {
+  @apply text-sm;
+}
+
+.inlineSelect {
+  @apply ml-2 rounded border border-ink-100 bg-white px-2 py-1;
+}
+
+.reviewTextarea {
+  @apply w-full rounded-lg border border-ink-100 bg-white px-3 py-2;
+}
+
+.locationGrid {
+  @apply grid gap-2 sm:grid-cols-2;
+}
+
+.locationInput {
+  @apply min-w-0 rounded-lg border border-ink-100 px-3 py-2;
+}
+
+.priceRow {
+  @apply flex gap-2;
+}
+
+.priceInput {
+  @apply flex-1 rounded-lg border border-ink-100 px-3 py-2;
+}
+
+.currencySelect {
+  @apply w-28 rounded-lg border border-ink-100 bg-white px-2 py-2;
+}
+
+.priceHint {
+  @apply text-xs text-ink-700/60;
+}
+
+.fileLabel {
+  @apply text-sm text-ink-700;
+}
+
+.fileInput {
+  @apply mt-1 block w-full text-sm;
+}
+
+.photoReady {
+  @apply mt-1 text-xs text-ink-700/70;
+}
+
+.reviewImages {
+  @apply mt-2 flex gap-2 overflow-x-auto;
+}
+
+.reviewImage {
+  @apply h-20 w-20 rounded-md bg-ink-100 object-contain;
+}
+
+.formError {
+  @apply text-sm text-verdict-never;
+}
+
+.submitButton {
+  @apply inline-flex items-center justify-center gap-2 rounded-lg bg-scan-500 px-4 py-2 font-semibold text-white hover:bg-scan-600 disabled:opacity-50;
+}
+
+.publicReviews {
+  @apply mt-10;
+}
+
+.noReviews {
+  @apply mt-2 text-ink-700/70;
+}
