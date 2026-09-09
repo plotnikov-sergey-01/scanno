@@ -191,31 +191,31 @@ export default function SearchPage() {
     setPending("create");
     setNotice(null);
     try {
-      const product = await api.createProduct({
+      let createdOrUpdatedProduct = await api.createProduct({
         name: manual.name,
         brand: manual.brand,
         category: manual.category || "",
         description: manual.description || "",
         barcode: manual.barcode || null,
       } as Partial<Product>);
-      if (product.already_exists) {
+      if (createdOrUpdatedProduct.already_exists) {
         setNotice({
           kind: "info",
-          text: product.detail || "Product already exists — opening that card.",
+          text: createdOrUpdatedProduct.detail || "Product already exists — opening that card.",
         });
       }
-      if (manualImage && product.can_edit_image && !product.already_exists) {
-        try {
-          await api.uploadProductImage(product.id, manualImage);
-        } catch {
-          // optional
-        }
+      if (manualImage && createdOrUpdatedProduct.can_edit_image && 
+        !createdOrUpdatedProduct.already_exists) {
+        createdOrUpdatedProduct = await api.uploadProductImage(
+          createdOrUpdatedProduct.id,
+          manualImage,
+        )
       }
-      router.push(`/products/${product.id}`);
+      router.push(`/products/${createdOrUpdatedProduct.id}`);
     } catch (err) {
       setNotice({
         kind: "error",
-        text: err instanceof Error ? err.message : "Create failed",
+        text: err instanceof Error ? err.message : "Create or photo upload failed",
       });
     } finally {
       setPending(null);
