@@ -116,10 +116,19 @@ if USE_S3:
     AWS_S3_FILE_OVERWRITE = False
     custom_domain = os.getenv("AWS_S3_CUSTOM_DOMAIN", "")
     public_scheme = os.getenv("AWS_S3_PUBLIC_URL_SCHEME", "http")
+    AWS_S3_URL_PROTOCOL = f"{public_scheme}:"
     if custom_domain:
         AWS_S3_CUSTOM_DOMAIN = custom_domain
         MEDIA_URL = f"{public_scheme}://{custom_domain}/"
-    DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+    # DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+    STORAGES ={
+        "default": {
+            "BACKEND" : "storages.backends.s3boto3.S3Boto3Storage",
+        },
+        "staticfiles" : {
+            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage", 
+        },
+    }
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 AUTH_USER_MODEL = "accounts.User"
