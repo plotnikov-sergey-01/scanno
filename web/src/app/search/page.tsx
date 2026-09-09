@@ -12,7 +12,6 @@ import { useAuth } from "@/lib/auth";
 import { BrowserMultiFormatReader } from "@zxing/browser";
 import { BarcodeFormat, DecodeHintType } from "@zxing/library";
 import styles from "./page.module.css";
-import { asyncWrapProviders } from "async_hooks";
 
 type Notice = { kind: "info" | "error"; text: string };
 
@@ -192,30 +191,31 @@ export default function SearchPage() {
     setPending("create");
     setNotice(null);
     try {
-      let createOrUpdatedProduct = await api.createProduct({
+      const product = await api.createProduct({
         name: manual.name,
         brand: manual.brand,
         category: manual.category || "",
         description: manual.description || "",
         barcode: manual.barcode || null,
       } as Partial<Product>);
-      if (createOrUpdatedProduct.already_exists) {
+      if (product.already_exists) {
         setNotice({
           kind: "info",
-          text: createOrUpdatedProduct.detail || "Product already exists — opening that card.",
+          text: product.detail || "Product already exists — opening that card.",
         });
       }
-      if (manualImage && createOrUpdatedProduct.can_edit_image && !createOrUpdatedProduct.already_exists) {
-       createOrUpdatedProduct = await api.uploadProductImage(
-        createOrUpdatedProduct.id,
-        manualImage,
-       );
+      if (manualImage && product.can_edit_image && !product.already_exists) {
+        try {
+          await api.uploadProductImage(product.id, manualImage);
+        } catch {
+          // optional
+        }
       }
-      router.push(`/products/${createOrUpdatedProduct.id}`);
+      router.push(`/products/${product.id}`);
     } catch (err) {
       setNotice({
         kind: "error",
-        text: err instanceof Error ? err.message : "Create or photo upload failed",
+        text: err instanceof Error ? err.message : "Create failed",
       });
     } finally {
       setPending(null);
