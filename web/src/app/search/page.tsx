@@ -9,7 +9,7 @@ import { ImageCropModal } from "@/components/ImageCropModal";
 import { LoadingLabel, Spinner } from "@/components/Spinner";
 import type { Product } from "@/lib/types";
 import { useAuth } from "@/lib/auth";
-import { BrowserMultiFormatReader } from "@zxing/browser";
+import { BrowserMultiFormatOneDReader } from "@zxing/browser";
 import { BarcodeFormat, DecodeHintType } from "@zxing/library";
 import styles from "./page.module.css";
 
@@ -118,9 +118,22 @@ export default function SearchPage() {
     await lookupBarcodeValue(barcode);
   }
 
-  function closeScanner() {
+  function stopScanner() {
     scannerControlRef.current?.stop();
     scannerControlRef.current = null;
+
+    const stream = videoRef.current?.srcObject;
+    if (stream instanceof MediaStream) {
+      stream.getTracks().forEach((track) => track.stop());
+    }
+
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+  }
+
+  function closeScanner() {
+    stopScanner();
     setScannerOpen(false);
     setScannerError(null);
     setScannerStatus("Point your camera at a barcode");
@@ -132,22 +145,31 @@ export default function SearchPage() {
     let cancelled = false;
     let controls: { stop: () => void } | null = null;
     const hints = new Map();
-    
+
     hints.set(DecodeHintType.POSSIBLE_FORMATS, [
       BarcodeFormat.EAN_13,
       BarcodeFormat.EAN_8,
       BarcodeFormat.UPC_A,
       BarcodeFormat.UPC_E,
+      BarcodeFormat.CODE_128,
     ]);
 
-    const reader = new BrowserMultiFormatReader(hints);
+    const reader = new BrowserMultiFormatOneDReader(hints);
+    const constraints: MediaStreamConstraints = {
+      video: {
+        facingMode: { ideal: "environment" },
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+      },
+      audio: false,
+    };
 
     async function startScanner() {
       try {
         setScannerError(null);
         setScannerStatus("Starting camera...");
-        controls = await reader.decodeFromVideoDevice(
-          undefined,
+        controls = await reader.decodeFromConstraints(
+          constraints,
           videoRef.current!,
           async (result) => {
             if (!result || cancelled) return;
@@ -157,8 +179,7 @@ export default function SearchPage() {
 
             setBarcode(scannedBarcode);
             setScannerStatus(`Found ${scannedBarcode}`);
-            controls?.stop();
-            scannerControlRef.current = null;
+            stopScanner();
             setScannerOpen(false);
             await lookupBarcodeValue(scannedBarcode);
           },
@@ -176,9 +197,11 @@ export default function SearchPage() {
     startScanner();
     return () => {
       cancelled = true;
-      controls?.stop();
-      scannerControlRef.current?.stop();
-      scannerControlRef.current = null;
+      if (scannerControlRef.current === controls) {
+        stopScanner();
+      } else {
+        controls?.stop();
+      }
     };
   }, [scannerOpen]);
 
@@ -273,7 +296,11 @@ export default function SearchPage() {
         <button
           type="button"
           disabled={loading}
-          onClick={() => setScannerOpen(true)}
+          onClick={() => {
+            setScannerError(null);
+            setScannerStatus("Starting camera...");
+            setScannerOpen(true);
+          }}
           className={styles.darkButton}
         >
           Scanning
