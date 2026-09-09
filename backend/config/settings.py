@@ -115,7 +115,7 @@ if USE_S3:
     AWS_QUERYSTRING_AUTH = False
     AWS_S3_FILE_OVERWRITE = False
     custom_domain = os.getenv("AWS_S3_CUSTOM_DOMAIN", "")
-    public_scheme = os.gatenv("AWS_S3_PUBLIC_URL_SHEME", "http")
+    public_scheme = os.getenv("AWS_S3_PUBLIC_URL_SCHEME", "http")
     if custom_domain:
         AWS_S3_CUSTOM_DOMAIN = custom_domain
         MEDIA_URL = f"{public_scheme}://{custom_domain}/"
