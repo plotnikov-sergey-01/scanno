@@ -2,25 +2,20 @@
 
 import { useEffect, useState } from "react";
 import Link from "@/components/LoadingProvider";
-import { useLoadingRouter as useRouter } from "@/components/LoadingProvider";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { ReviewCard } from "@/components/ReviewCard";
 import { LoadingLabel } from "@/components/Spinner";
+import { GuestActionPrompt } from "@/components/GuestActionPrompt";
 import type { Review } from "@/lib/types";
 import styles from "./page.module.css";
 
 export default function DiaryPage() {
   const { user, loading } = useAuth();
-  const router = useRouter();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [filter, setFilter] = useState<string>("");
   const [error, setError] = useState("");
   const [loadingReviews, setLoadingReviews] = useState(false);
-
-  useEffect(() => {
-    if (!loading && !user) router.push("/login");
-  }, [loading, user, router]);
 
   useEffect(() => {
     if (!user) return;
@@ -36,7 +31,17 @@ export default function DiaryPage() {
       .finally(() => setLoadingReviews(false));
   }, [user, filter]);
 
-  if (loading || !user) return <LoadingLabel />;
+  if (loading) return <LoadingLabel />;
+
+  if (!user) {
+    return (
+      <div>
+        <h1 className={styles.title}>My diary</h1>
+        <p className={styles.subtitle}>Your personal shelf memory.</p>
+        <GuestActionPrompt text="Log in or create an account to keep your private diary." />
+      </div>
+    );
+  }
 
   return (
     <div>

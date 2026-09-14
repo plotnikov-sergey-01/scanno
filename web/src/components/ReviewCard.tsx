@@ -1,7 +1,11 @@
 "use client";
 
+import { FormEvent, useEffect, useState } from "react";
 import Link from "@/components/LoadingProvider";
-import type { Review } from "@/lib/types";
+import { api } from "@/lib/api";
+import { useAuth } from "@/lib/auth";
+import type { Comment, Review } from "@/lib/types";
+import { GuestActionPrompt } from "./GuestActionPrompt";
 import { Stars, VerdictBadge } from "./Verdict";
 import styles from "./ReviewCard.module.css";
 
@@ -12,10 +16,41 @@ export function ReviewCard({
   review: Review;
   onOpenImage?: (images: string[], index: number) => void;
 }) {
+  const { user } = useAuth();
+  const [comments, setComments] = useState<Comment[]>(review.comments || []);
+  const [commentBody, setCommentBody] = useState("");
+  const [commentError, setCommentError] = useState("");
+  const [savingComment, setSavingComment] = useState(false);
   const images = review.images?.map((i) => i.image) || [];
   const updated =
     review.updated_at &&
     new Date(review.updated_at).getTime() - new Date(review.created_at).getTime() > 60_000;
+
+  useEffect(() => {
+    api
+      .getReviewComments(review.id)
+      .then((data) => setComments(Array.isArray(data) ? data : data.results))
+      .catch(() => setComments(review.comments || []));
+  }, [review.id, review.comments]);
+
+  async function onCommentSubmit(e: FormEvent) {
+    e.preventDefault();
+    const body = commentBody.trim();
+    if (!body) return;
+
+    setSavingComment(true);
+    setCommentError("");
+    try {
+      await api.addComment(review.id, body);
+      const data = await api.getReviewComments(review.id);
+      setComments(Array.isArray(data) ? data : data.results);
+      setCommentBody("");
+    } catch (err) {
+      setCommentError(err instanceof Error ? err.message : "Could not save comment");
+    } finally {
+      setSavingComment(false);
+    }
+  }
 
   return (
     <article className={styles.card}>
@@ -65,8 +100,39 @@ export function ReviewCard({
         ) : (
           new Date(review.created_at).toLocaleDateString()
         )}
-        {review.comment_count ? ` · ${review.comment_count} comments` : ""}
+        {comments.length ? ` · ${comments.length} comments` : ""}
       </p>
+      <div className={styles.comments}>
+        {comments.map((comment) => (
+          <div key={comment.id} className={styles.comment}>
+            <Link href={`/u/${comment.user.username}`} className={styles.commentAuthor}>
+              {comment.user.display_name || comment.user.username}
+            </Link>
+            <p>{comment.body}</p>
+          </div>
+        ))}
+
+        {user ? (
+          <form onSubmit={onCommentSubmit} className={styles.commentForm}>
+            <input
+              value={commentBody}
+              onChange={(e) => setCommentBody(e.target.value)}
+              placeholder="Write a comment"
+              className={styles.commentInput}
+            />
+            <button
+              type="submit"
+              disabled={savingComment || !commentBody.trim()}
+              className={styles.commentButton}
+            >
+              {savingComment ? "Saving..." : "Post"}
+            </button>
+            {commentError && <p className={styles.commentError}>{commentError}</p>}
+          </form>
+        ) : (
+          <GuestActionPrompt text="Log in or create an account to write a comment." />
+        )}
+      </div>
     </article>
   );
 }

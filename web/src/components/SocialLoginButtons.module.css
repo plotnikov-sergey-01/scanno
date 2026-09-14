@@ -1,0 +1,29 @@
+.root {
+  @apply mt-6 space-y-4;
+}
+
+.divider {
+  @apply flex items-center gap-3 text-sm text-ink-700;
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+  @apply h-px flex-1 bg-ink-100;
+}
+
+.buttons {
+  @apply grid grid-cols-3 gap-3;
+}
+
+.button {
+  @apply inline-flex w-full items-center justify-center gap-2 rounded-lg border border-ink-100 bg-white px-4 py-3 font-semibold text-ink-900 hover:bg-ink-50 disabled:opacity-50;
+}
+
+.icon {
+  @apply h-6 w-6;
+}
+
+.error {
+  @apply text-sm text-verdict-never;
+}

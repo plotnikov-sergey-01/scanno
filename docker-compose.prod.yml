@@ -62,6 +62,8 @@ services:
              gunicorn config.wsgi:application -b 0.0.0.0:8000 --workers 3"
     env_file:
       - ./backend/.env
+    environment:
+      SOCIAL_AUTH_ALLOWED_REDIRECT_ORIGINS: ${SOCIAL_AUTH_ALLOWED_REDIRECT_ORIGINS:?set SOCIAL_AUTH_ALLOWED_REDIRECT_ORIGINS}
     depends_on:
       db:
         condition: service_healthy
@@ -78,9 +80,15 @@ services:
       dockerfile: Dockerfile.prod
       args:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:?set NEXT_PUBLIC_API_URL}
+        NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${NEXT_PUBLIC_GOOGLE_CLIENT_ID:-}
+        NEXT_PUBLIC_FACEBOOK_APP_ID: ${NEXT_PUBLIC_FACEBOOK_APP_ID:-}
+        NEXT_PUBLIC_LINKEDIN_CLIENT_ID: ${NEXT_PUBLIC_LINKEDIN_CLIENT_ID:-}
     restart: unless-stopped
     environment:
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+      NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${NEXT_PUBLIC_GOOGLE_CLIENT_ID:-}
+      NEXT_PUBLIC_FACEBOOK_APP_ID: ${NEXT_PUBLIC_FACEBOOK_APP_ID:-}
+      NEXT_PUBLIC_LINKEDIN_CLIENT_ID: ${NEXT_PUBLIC_LINKEDIN_CLIENT_ID:-}
       NEXT_PUBLIC_POSTHOG_KEY: ${NEXT_PUBLIC_POSTHOG_KEY:-}
       NEXT_PUBLIC_POSTHOG_HOST: ${NEXT_PUBLIC_POSTHOG_HOST:-https://us.i.posthog.com}
     depends_on:

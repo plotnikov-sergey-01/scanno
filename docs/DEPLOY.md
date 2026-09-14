@@ -130,6 +130,9 @@ MINIO_ROOT_PASSWORD=MySecretPass123
 AWS_STORAGE_BUCKET_NAME=scanno
 
 NEXT_PUBLIC_API_URL=http://159.89.1.2:8000/api/v1
+NEXT_PUBLIC_GOOGLE_CLIENT_ID=
+NEXT_PUBLIC_FACEBOOK_APP_ID=
+NEXT_PUBLIC_LINKEDIN_CLIENT_ID=
 ```
 
 **Что здесь важно:**
@@ -137,6 +140,7 @@ NEXT_PUBLIC_API_URL=http://159.89.1.2:8000/api/v1
 - `POSTGRES_PASSWORD` — пароль базы внутри Docker (не путать с Django).
 - `MINIO_ROOT_PASSWORD` — пароль хранилища картинок; `AWS_SECRET_ACCESS_KEY` в backend должен совпадать.
 - `NEXT_PUBLIC_API_URL` — **полный URL API**, который браузер пользователя будет вызывать. Формат: `http://ВАШ_IP:8000/api/v1` (без слэша в конце). Зашивается в образ `web` при сборке.
+- `NEXT_PUBLIC_GOOGLE_CLIENT_ID`, `NEXT_PUBLIC_FACEBOOK_APP_ID`, `NEXT_PUBLIC_LINKEDIN_CLIENT_ID` — публичные ID OAuth apps. Они тоже зашиваются в образ `web` при сборке.
 
 ### Шаг 6. Создать `backend/.env` (настройки Django)
 
@@ -155,6 +159,7 @@ ALLOWED_HOSTS=159.89.1.2,localhost,127.0.0.1
 DATABASE_URL=postgres://scanno:MySecretPass123@db:5432/scanno
 
 CORS_ALLOWED_ORIGINS=http://159.89.1.2:3000
+SOCIAL_AUTH_ALLOWED_REDIRECT_ORIGINS=http://159.89.1.2:3000
 
 USE_S3=1
 AWS_ACCESS_KEY_ID=scanno
@@ -175,6 +180,7 @@ OPEN_FOOD_FACTS_USER_AGENT=Scanno/1.0 (you@example.com)
 | `ALLOWED_HOSTS` | твой IP + `localhost,127.0.0.1` |
 | `DATABASE_URL` | `postgres://scanno:<тот_же_пароль_что_POSTGRES_PASSWORD>@db:5432/scanno` — хост **`db`** это имя сервиса в Docker, не IP |
 | `CORS_ALLOWED_ORIGINS` | `http://ВАШ_IP:3000` — откуда открывается фронт |
+| `SOCIAL_AUTH_ALLOWED_REDIRECT_ORIGINS` | `http://ВАШ_IP:3000` — origin, с которого backend принимает OAuth callback |
 | `USE_S3` | `1` — картинки в MinIO |
 | `AWS_ACCESS_KEY_ID` | `scanno` (= `MINIO_ROOT_USER` из корневого `.env`) |
 | `AWS_SECRET_ACCESS_KEY` | тот же пароль, что `MINIO_ROOT_PASSWORD` |
@@ -344,6 +350,9 @@ MINIO_ROOT_PASSWORD=<same-or-another-random>
 AWS_STORAGE_BUCKET_NAME=scanno
 
 NEXT_PUBLIC_API_URL=https://api.example.com/api/v1
+NEXT_PUBLIC_GOOGLE_CLIENT_ID=
+NEXT_PUBLIC_FACEBOOK_APP_ID=
+NEXT_PUBLIC_LINKEDIN_CLIENT_ID=
 ```
 
 **`backend/.env`** — Django:
@@ -356,6 +365,7 @@ ALLOWED_HOSTS=api.example.com,localhost,127.0.0.1
 DATABASE_URL=postgres://scanno:<POSTGRES_PASSWORD>@db:5432/scanno
 
 CORS_ALLOWED_ORIGINS=https://app.example.com
+SOCIAL_AUTH_ALLOWED_REDIRECT_ORIGINS=https://app.example.com
 
 USE_S3=1
 AWS_ACCESS_KEY_ID=scanno
@@ -367,7 +377,17 @@ AWS_S3_CUSTOM_DOMAIN=media.example.com/scanno
 OPEN_FOOD_FACTS_USER_AGENT=Scanno/1.0 (you@example.com)
 ```
 
-Same rules as in [Start without a domain](#start-without-a-domain-bare-ip) (шаги 5–6): пароли Postgres/MinIO совпадают между файлами; `DATABASE_URL` использует хост `db`; `CORS_ALLOWED_ORIGINS` — origin фронта без пути.
+Same rules as in [Start without a domain](#start-without-a-domain-bare-ip) (шаги 5–6): пароли Postgres/MinIO совпадают между файлами; `DATABASE_URL` использует хост `db`; `CORS_ALLOWED_ORIGINS` и `SOCIAL_AUTH_ALLOWED_REDIRECT_ORIGINS` — origin фронта без пути.
+
+For social login, add these redirect URLs in the provider dashboards:
+
+```text
+https://app.example.com/auth/social/callback?provider=google
+https://app.example.com/auth/social/callback?provider=facebook
+https://app.example.com/auth/social/callback?provider=linkedin
+```
+
+Then create matching Social Applications in Django admin and attach them to the configured Site.
 
 
 ### 6. Caddy reverse proxy
@@ -456,10 +476,12 @@ docker compose -f docker-compose.prod.yml exec -T db \
 2. Unique Postgres and MinIO passwords; do not reuse dev defaults.
 3. HTTPS on all public hostnames (Caddy).
 4. `CORS_ALLOWED_ORIGINS` matches exactly `https://app.<domain>` (no trailing slash).
-5. `NEXT_PUBLIC_API_URL` uses HTTPS and is set **at web image build time** (Docker build arg).
+5. `NEXT_PUBLIC_API_URL` and social `NEXT_PUBLIC_*` client IDs are set **at web image build time** (Docker build args).
 6. Create a real superuser; never run `seed_dev` in production.
-7. Optionally set `NEXT_PUBLIC_POSTHOG_KEY` for analytics.
-8. Restrict SSH; keep system and Docker images updated.
+7. `SOCIAL_AUTH_ALLOWED_REDIRECT_ORIGINS` matches the public web origin.
+8. Provider dashboards contain exact HTTPS social callback URLs.
+9. Optionally set `NEXT_PUBLIC_POSTHOG_KEY` for analytics.
+10. Restrict SSH; keep system and Docker images updated.
 
 ---
 

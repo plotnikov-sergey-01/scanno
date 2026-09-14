@@ -86,6 +86,12 @@ export type AuthTokens = {
   refresh: string;
 };
 
+export type SocialProvider = "google" | "facebook" | "linkedin";
+
+export type SocialLoginResponse = AuthTokens & {
+  user: Me;
+};
+
 export type Me = {
   id: number;
   email: string;

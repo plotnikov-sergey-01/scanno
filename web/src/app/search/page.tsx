@@ -7,6 +7,7 @@ import { api, ApiError } from "@/lib/api";
 import { ProductCard, ProductCardGrid } from "@/components/ProductCard";
 import { ImageCropModal } from "@/components/ImageCropModal";
 import { LoadingLabel, Spinner } from "@/components/Spinner";
+import { GuestActionPrompt } from "@/components/GuestActionPrompt";
 import type { Product } from "@/lib/types";
 import { useAuth } from "@/lib/auth";
 import { BrowserMultiFormatOneDReader } from "@zxing/browser";
@@ -101,7 +102,6 @@ export default function SearchPage() {
         setManual((m) => ({ ...m, barcode: clean }));
       } else if (err instanceof ApiError && err.status === 401) {
         setNotice({ kind: "error", text: "Please log in to continue." });
-        router.push("/login");
       } else {
         setNotice({
           kind: "error",
@@ -208,7 +208,6 @@ export default function SearchPage() {
   async function onManual(e: FormEvent) {
     e.preventDefault();
     if (!user) {
-      router.push("/login");
       return;
     }
     setPending("create");
@@ -314,7 +313,7 @@ export default function SearchPage() {
           }
         >
           <p>{notice.text}</p>
-          {showAddCta && (
+          {showAddCta && user && (
             <button
               type="button"
               className={styles.addProductButton}
@@ -329,13 +328,7 @@ export default function SearchPage() {
             </button>
           )}
           {showAddCta && !user && (
-            <p className={styles.loginHint}>
-              You&apos;ll need to{" "}
-              <Link href="/login" className={styles.link}>
-                log in
-              </Link>{" "}
-              to create it.
-            </p>
+            <GuestActionPrompt text="Log in or create an account to add this product." />
           )}
         </div>
       )}

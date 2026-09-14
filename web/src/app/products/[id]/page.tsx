@@ -1,7 +1,6 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import Link from "@/components/LoadingProvider";
 import { useParams } from "next/navigation";
 import { useLoadingRouter as useRouter } from "@/components/LoadingProvider";
 import { api } from "@/lib/api";
@@ -11,6 +10,7 @@ import { Stars } from "@/components/Verdict";
 import { ImageLightbox } from "@/components/ImageLightbox";
 import { ImageCropModal } from "@/components/ImageCropModal";
 import { LoadingLabel, Spinner } from "@/components/Spinner";
+import { GuestActionPrompt } from "@/components/GuestActionPrompt";
 import type { Product, Review } from "@/lib/types";
 import styles from "./page.module.css";
 
@@ -43,7 +43,8 @@ export default function ProductPage() {
   const [lightbox, setLightbox] = useState<{ images: string[]; index: number } | null>(null);
 
   async function reload() {
-    const [p, r] = await Promise.all([api.getProduct(id), api.productReviews(id)]);
+    setError("");
+    const [p, r] = await Promise.all([api.getProduct(id, Boolean(user)), api.productReviews(id)]);
     setProduct(p);
     setReviews(r.results);
     if (user) {
@@ -265,12 +266,7 @@ export default function ProductPage() {
           </p>
         )}
         {!user ? (
-          <p className={styles.loginPrompt}>
-            <Link href="/login" className={styles.link}>
-              Log in
-            </Link>{" "}
-            to add a review.
-          </p>
+          <GuestActionPrompt text="Log in or create an account to add a review." />
         ) : (
           <form onSubmit={onSubmit} className={styles.reviewForm}>
             <div className={styles.selectRow}>

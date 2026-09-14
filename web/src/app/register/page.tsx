@@ -1,17 +1,19 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import Link from "@/components/LoadingProvider";
 import { useLoadingRouter as useRouter } from "@/components/LoadingProvider";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { PasswordInput } from "@/components/PasswordInput";
 import { Spinner } from "@/components/Spinner";
+import { SocialLoginButtons } from "@/components/SocialLoginButtons";
 import styles from "./page.module.css";
 
 export default function RegisterPage() {
   const router = useRouter();
   const { refresh } = useAuth();
+  const [next, setNext] = useState("/search");
   const [form, setForm] = useState({
     email: "",
     username: "",
@@ -21,6 +23,16 @@ export default function RegisterPage() {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  useEffect(() => {
+    const value = new URLSearchParams(window.location.search).get("next");
+    if (value?.startsWith("/")) setNext(value);
+  }, []);
+
+  async function onSocialSuccess() {
+    await refresh();
+    router.push(next);
+  }
+
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setError("");
@@ -29,7 +41,7 @@ export default function RegisterPage() {
       await api.register(form);
       await api.login(form.email, form.password);
       await refresh();
-      router.push("/search");
+      router.push(next);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Registration failed");
     } finally {
@@ -77,8 +89,12 @@ export default function RegisterPage() {
           Sign up
         </button>
       </form>
+      <SocialLoginButtons onSuccess={onSocialSuccess} />
       <p className={styles.footerText}>
-        Already have an account? <Link href="/login" className={styles.link}>Log in</Link>
+        Already have an account?{" "}
+        <Link href={`/login?next=${encodeURIComponent(next)}`} className={styles.link}>
+          Log in
+        </Link>
       </p>
     </div>
   );

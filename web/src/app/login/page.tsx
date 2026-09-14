@@ -1,21 +1,33 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import Link from "@/components/LoadingProvider";
 import { useLoadingRouter as useRouter } from "@/components/LoadingProvider";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { PasswordInput } from "@/components/PasswordInput";
 import { Spinner } from "@/components/Spinner";
+import { SocialLoginButtons } from "@/components/SocialLoginButtons";
 import styles from "./page.module.css";
 
 export default function LoginPage() {
   const router = useRouter();
   const { refresh } = useAuth();
+  const [next, setNext] = useState("/diary");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    const value = new URLSearchParams(window.location.search).get("next");
+    if (value?.startsWith("/")) setNext(value);
+  }, []);
+
+  async function onSocialSuccess() {
+    await refresh();
+    router.push(next);
+  }
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -24,7 +36,7 @@ export default function LoginPage() {
     try {
       await api.login(email, password);
       await refresh();
-      router.push("/diary");
+      router.push(next);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
     } finally {
@@ -60,8 +72,12 @@ export default function LoginPage() {
           Log in
         </button>
       </form>
+      <SocialLoginButtons onSuccess={onSocialSuccess} />
       <p className={styles.footerText}>
-        No account? <Link href="/register" className={styles.link}>Sign up</Link>
+        No account?{" "}
+        <Link href={`/register?next=${encodeURIComponent(next)}`} className={styles.link}>
+          Sign up
+        </Link>
       </p>
     </div>
   );

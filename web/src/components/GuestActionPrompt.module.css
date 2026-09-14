@@ -1,0 +1,15 @@
+.prompt {
+  @apply mt-3 rounded-lg border border-ink-100 bg-white/80 p-4 text-sm text-ink-700;
+}
+
+.actions {
+  @apply mt-3 flex flex-wrap gap-2;
+}
+
+.loginButton {
+  @apply rounded-md bg-scan-500 px-3 py-2 font-semibold text-white hover:bg-scan-600;
+}
+
+.registerButton {
+  @apply rounded-md border border-scan-500 px-3 py-2 font-semibold text-scan-600 hover:bg-scan-500/10;
+}

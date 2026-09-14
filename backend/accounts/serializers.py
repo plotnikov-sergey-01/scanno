@@ -1,4 +1,7 @@
 from django.contrib.auth import get_user_model
+from django.conf import settings
+from urllib.parse import parse_qs, urlparse
+from dj_rest_auth.registration.serializers import SocialLoginSerializer
 from rest_framework import serializers
 
 from .models import Profile
@@ -54,6 +57,44 @@ class RegisterSerializer(serializers.ModelSerializer):
             profile.display_name = display_name
             profile.save(update_fields=["display_name"])
         return user
+
+
+class SocialAuthorizationCodeSerializer(SocialLoginSerializer):
+    code = serializers.CharField(required=True, allow_blank=False)
+    redirect_uri = serializers.URLField(required=True)
+
+    def get_fields(self):
+        fields = super().get_fields()
+        fields.pop("access_token", None)
+        fields.pop("id_token", None)
+        return fields
+
+    def validate(self, attrs):
+        view = self.context.get("view")
+        redirect_uri = attrs.get("redirect_uri")
+
+        self._validate_redirect_uri(redirect_uri, view)
+        view.callback_url = redirect_uri
+
+        return super().validate(attrs)
+
+    def _validate_redirect_uri(self, redirect_uri, view):
+        if not redirect_uri:
+            raise serializers.ValidationError({"redirect_uri": "This field is required."})
+
+        parsed = urlparse(redirect_uri)
+        origin = f"{parsed.scheme}://{parsed.netloc}"
+        allowed_origins = set(settings.SOCIAL_AUTH_ALLOWED_REDIRECT_ORIGINS)
+        provider = getattr(view, "social_provider", "")
+
+        if origin not in allowed_origins:
+            raise serializers.ValidationError({"redirect_uri": "This origin is not allowed."})
+        if parsed.path != "/auth/social/callback":
+            raise serializers.ValidationError({"redirect_uri": "Invalid social callback path."})
+
+        query_provider = parse_qs(parsed.query).get("provider", [""])[0]
+        if query_provider != provider:
+            raise serializers.ValidationError({"redirect_uri": "Invalid social provider callback."})
 
 
 class PublicProfileSerializer(serializers.ModelSerializer):

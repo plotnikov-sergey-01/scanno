@@ -1,16 +1,22 @@
 from django.contrib.auth import get_user_model
-from rest_framework import generics, permissions, status
+from allauth.socialaccount.providers.facebook.views import FacebookOAuth2Adapter
+from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
+from allauth.socialaccount.providers.linkedin_oauth2.views import LinkedInOAuth2Adapter
+from allauth.socialaccount.providers.oauth2.client import OAuth2Client
+from rest_framework import generics, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from dj_rest_auth.registration.views import SocialLoginView
 from drf_spectacular.utils import extend_schema
 
 from .serializers import (
     ProfileSerializer,
     PublicProfileSerializer,
     RegisterSerializer,
+    SocialAuthorizationCodeSerializer,
     UserSerializer,
 )
+
 from reviews.serializers import ReviewListSerializer
 from reviews.models import Review, Visibility
 
@@ -20,6 +26,29 @@ User = get_user_model()
 class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
     permission_classes = [permissions.AllowAny]
+
+@extend_schema(description="Exchange a Google authorization code for Scanno JWT tokens.")
+class GoogleLoginView(SocialLoginView):
+    adapter_class = GoogleOAuth2Adapter
+    client_class = OAuth2Client
+    serializer_class = SocialAuthorizationCodeSerializer
+    social_provider = "google"
+
+
+@extend_schema(description="Exchange a Facebook authorization code for Scanno JWT tokens.")
+class FacebookLoginView(SocialLoginView):
+    adapter_class = FacebookOAuth2Adapter
+    client_class = OAuth2Client
+    serializer_class = SocialAuthorizationCodeSerializer
+    social_provider = "facebook"
+
+
+@extend_schema(description="Exchange a LinkedIn authorization code for Scanno JWT tokens.")
+class LinkedInLoginView(SocialLoginView):
+    adapter_class = LinkedInOAuth2Adapter
+    client_class = OAuth2Client
+    serializer_class = SocialAuthorizationCodeSerializer
+    social_provider = "linkedin"
 
 
 class MeView(generics.RetrieveUpdateAPIView):

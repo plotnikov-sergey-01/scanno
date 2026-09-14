@@ -20,12 +20,21 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.postgres",
+    "django.contrib.sites",
     "corsheaders",
     "rest_framework",
     "rest_framework_simplejwt",
     "django_filters",
     "drf_spectacular",
     "storages",
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    "allauth.socialaccount.providers.google",
+    "allauth.socialaccount.providers.facebook",
+    "allauth.socialaccount.providers.linkedin_oauth2",
+    "dj_rest_auth",
+    "dj_rest_auth.registration",
     "accounts.apps.AccountsConfig",
     "catalog.apps.CatalogConfig",
     "reviews.apps.ReviewsConfig",
@@ -40,6 +49,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -132,6 +142,12 @@ if USE_S3:
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 AUTH_USER_MODEL = "accounts.User"
+SITE_ID = 1
+
+AUTHENTICATION_BACKENDS = (
+    "django.contrib.auth.backends.ModelBackend",
+    "allauth.account.auth_backends.AuthenticationBackend",
+)
 
 CORS_ALLOWED_ORIGINS = [
     o.strip()
@@ -139,6 +155,14 @@ CORS_ALLOWED_ORIGINS = [
     if o.strip()
 ]
 CORS_ALLOW_CREDENTIALS = True
+SOCIAL_AUTH_ALLOWED_REDIRECT_ORIGINS = [
+    o.strip()
+    for o in os.getenv(
+        "SOCIAL_AUTH_ALLOWED_REDIRECT_ORIGINS",
+        ",".join(CORS_ALLOWED_ORIGINS),
+    ).split(",")
+    if o.strip()
+]
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
@@ -164,6 +188,13 @@ SIMPLE_JWT = {
     "REFRESH_TOKEN_LIFETIME": timedelta(days=30),
     "ROTATE_REFRESH_TOKENS": False,
     "AUTH_HEADER_TYPES": ("Bearer",),
+}
+
+REST_AUTH = {
+    "USE_JWT": True,
+    "JWT_AUTH_HTTPONLY": False,
+    "TOKEN_MODEL": None,
+    "USER_DETAILS_SERIALIZER": "accounts.serializers.UserSerializer",
 }
 
 SPECTACULAR_SETTINGS = {

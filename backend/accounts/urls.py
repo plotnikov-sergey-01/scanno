@@ -3,11 +3,23 @@ from django.urls import path
 from .auth import EmailTokenObtainPairView
 from rest_framework_simplejwt.views import TokenRefreshView
 
-from .views import HealthView, MeView, PublicUserReviewsView, PublicUserView, RegisterView
+from .views import (
+    FacebookLoginView,
+    GoogleLoginView,
+    HealthView,
+    LinkedInLoginView,
+    MeView,
+    PublicUserReviewsView,
+    PublicUserView,
+    RegisterView,
+)
 
 auth_urlpatterns = [
     path("register/", RegisterView.as_view(), name="auth-register"),
     path("login/", EmailTokenObtainPairView.as_view(), name="auth-login"),
+    path("social/google/", GoogleLoginView.as_view(), name="auth-social-google"),
+    path("social/facebook/", FacebookLoginView.as_view(), name="auth-social-facebook"),
+    path("social/linkedin/", LinkedInLoginView.as_view(), name="auth-social-linkedin"),
     path("refresh/", TokenRefreshView.as_view(), name="auth-refresh"),
     path("me/", MeView.as_view(), name="auth-me"),
 ]

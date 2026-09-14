@@ -37,3 +37,31 @@
 .dateDetail {
   @apply text-ink-700/40;
 }
+
+.comments {
+  @apply mt-4 space-y-3;
+}
+
+.comment {
+  @apply rounded-lg bg-ink-100/60 px-3 py-2 text-sm text-ink-700;
+}
+
+.commentAuthor {
+  @apply font-semibold text-ink-900 hover:text-scan-600;
+}
+
+.commentForm {
+  @apply flex flex-col gap-2 sm:flex-row sm:items-start;
+}
+
+.commentInput {
+  @apply min-w-0 flex-1 rounded-lg border border-ink-100 bg-white px-3 py-2 text-sm;
+}
+
+.commentButton {
+  @apply rounded-lg bg-ink-900 px-3 py-2 text-sm font-semibold text-white hover:bg-ink-700 disabled:opacity-50;
+}
+
+.commentError {
+  @apply text-sm text-verdict-never;
+}
