@@ -2,30 +2,246 @@
   @apply text-verdict-never;
 }
 
+.page {
+  @apply space-y-6;
+}
+
+.hero {
+  @apply grid gap-5 rounded-2xl border border-ink-100 bg-white/75 p-5 md:grid-cols-[1fr_auto] md:items-start md:p-7;
+}
+
+.identity {
+  @apply grid gap-4 sm:grid-cols-[7rem_1fr] sm:items-start;
+}
+
+.avatar {
+  @apply flex h-24 w-24 items-center justify-center overflow-hidden rounded-full bg-scan-400/20 font-display text-5xl font-bold text-scan-600 sm:h-28 sm:w-28;
+}
+
+.avatarImage {
+  @apply h-full w-full object-cover;
+}
+
 .title {
-  @apply font-display text-3xl font-bold;
+  @apply font-display text-3xl font-bold leading-none;
 }
 
 .username {
-  @apply text-ink-700/70;
+  @apply mt-1 text-lg text-ink-700/60;
 }
 
 .bio {
-  @apply mt-3 text-ink-700;
+  @apply mt-3 text-lg text-ink-700;
+}
+
+.statsRow {
+  @apply mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4;
+}
+
+.stat {
+  @apply border-l border-ink-100 pl-4;
+}
+
+.stat strong {
+  @apply block font-display text-2xl leading-none text-ink-900;
+}
+
+.stat span {
+  @apply mt-1 block text-sm text-ink-700/65;
+}
+
+.profileActions {
+  @apply flex items-start md:items-start;
+}
+
+.logoutButton {
+  @apply rounded-lg border border-ink-100 bg-white px-4 py-2 font-semibold text-ink-900 hover:border-verdict-never hover:text-verdict-never;
+}
+
+.snapshot {
+  @apply grid gap-5 rounded-xl border border-ink-100 bg-white/80 p-5 md:grid-cols-[1.45fr_1fr] md:p-6;
+}
+
+.snapshotMain {
+  @apply space-y-5;
+}
+
+.snapshotGrid {
+  @apply grid gap-5 sm:grid-cols-[12rem_1fr] sm:items-center;
+}
+
+.donut {
+  @apply relative flex h-44 w-44 items-center justify-center rounded-full;
+}
+
+.donut::after {
+  @apply absolute h-24 w-24 rounded-full bg-white content-[""];
+}
+
+.donut span {
+  @apply relative z-10 text-center text-sm leading-tight text-ink-700/70;
+}
+
+.donut strong {
+  @apply block font-display text-3xl text-ink-900;
+}
+
+.verdictList {
+  @apply divide-y divide-ink-100;
+}
+
+.verdictStat {
+  @apply grid grid-cols-[auto_1fr_auto_auto] items-center gap-3 py-3 text-ink-900;
+}
+
+.verdictStat strong {
+  @apply font-semibold;
+}
+
+.verdictStat small {
+  @apply w-10 text-right text-ink-700/65;
+}
+
+.verdictDot {
+  @apply h-3 w-3 rounded-full;
+}
+
+.buy {
+  @apply bg-verdict-buy;
+}
+
+.never {
+  @apply bg-verdict-never;
+}
+
+.neutral {
+  @apply bg-verdict-neutral;
+}
+
+.recentPanel {
+  @apply border-t border-ink-100 pt-5 md:border-l md:border-t-0 md:pl-6 md:pt-0;
+}
+
+.panelTitle {
+  @apply font-display text-lg font-bold;
+}
+
+.recentList {
+  @apply mt-4 space-y-3;
+}
+
+.recentItem {
+  @apply grid grid-cols-[4rem_minmax(0,1fr)_auto] items-center gap-3 rounded-lg px-1 py-2 hover:bg-ink-100/60;
+}
+
+.recentItem .reviewThumb {
+  @apply h-16 w-16;
+}
+
+.recentItem strong {
+  @apply block text-ink-900;
+}
+
+.recentItem small {
+  @apply mt-1 inline-flex rounded-full bg-ink-100 px-2 py-0.5 text-xs font-semibold text-ink-700;
+}
+
+.recentItem time {
+  @apply text-sm text-ink-700/60;
+}
+
+.insightGrid {
+  @apply grid gap-4 md:grid-cols-2;
+}
+
+.insightCard {
+  @apply rounded-xl border p-5;
+}
+
+.insightCard.buy {
+  @apply border-verdict-buy/20 bg-verdict-buy/5;
+}
+
+.insightCard.watch {
+  @apply border-verdict-never/20 bg-verdict-never/5;
+}
+
+.insightCard h3 {
+  @apply font-display text-xl font-bold;
+}
+
+.insightCard p {
+  @apply mt-1 text-ink-700/65;
+}
+
+.insightValue {
+  @apply mt-5 flex items-center justify-between rounded-lg border border-ink-100 bg-white px-4 py-3;
+}
+
+.insightValue span {
+  @apply font-semibold text-ink-900;
+}
+
+.insightValue strong {
+  @apply rounded-full bg-ink-100 px-3 py-1 text-sm text-ink-700;
 }
 
 .reviewsSection {
   @apply mt-8;
 }
 
+.sectionHeader {
+  @apply mb-4;
+}
+
 .sectionTitle {
-  @apply font-display text-xl font-bold;
+  @apply font-display text-2xl font-bold;
+}
+
+.sectionLead {
+  @apply mt-1 text-ink-700/65;
 }
 
 .empty {
-  @apply mt-2 text-ink-700/70;
+  @apply rounded-xl border border-ink-100 bg-white/75 p-5 text-ink-700/70;
 }
 
 .productLink {
-  @apply text-sm text-scan-600;
+  @apply font-display text-xl font-bold text-ink-900 hover:text-scan-600;
+}
+
+.reviewShell {
+  @apply mb-4 grid gap-4 rounded-xl border border-ink-100 bg-white/80 p-4 sm:grid-cols-[7rem_1fr];
+}
+
+.reviewContent {
+  @apply min-w-0;
+}
+
+.reviewTopline {
+  @apply flex items-start justify-between gap-3;
+}
+
+.reviewThumb {
+  @apply flex h-24 w-24 items-center justify-center overflow-hidden rounded-lg bg-ink-100 font-display text-3xl font-bold text-ink-700/50;
+}
+
+.reviewThumb img {
+  @apply h-full w-full object-cover;
+}
+
+.cardMenu {
+  @apply relative shrink-0;
+}
+
+.cardMenuButton {
+  @apply flex h-8 w-8 items-center justify-center rounded-full text-lg font-bold leading-none text-ink-700/60 hover:bg-ink-100 hover:text-ink-900;
+}
+
+.cardMenuPanel {
+  @apply absolute right-0 top-9 z-20 min-w-32 rounded-lg border border-ink-100 bg-white p-1;
+}
+
+.cardMenuPanel button {
+  @apply w-full rounded-md px-3 py-2 text-left text-sm font-semibold text-verdict-never hover:bg-verdict-never/10 disabled:opacity-50;
 }

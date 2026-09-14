@@ -152,6 +152,11 @@ export const api = {
       body: JSON.stringify(body),
     }, true),
 
+  deleteReview: (reviewId: number) =>
+    request<void>(`/reviews/${reviewId}/`, {
+      method: "DELETE",
+    }, true),
+
   getReview: (reviewId: number, auth = false) =>
     request<Review>(`/reviews/${reviewId}/`, {}, auth, true),
 

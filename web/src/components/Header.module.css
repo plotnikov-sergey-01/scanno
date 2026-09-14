@@ -19,11 +19,23 @@
 }
 
 .navLink {
-  @apply hover:text-scan-600;
+  @apply inline-flex items-center gap-1.5 hover:text-scan-600;
 }
 
-.logoutButton {
-  @apply rounded-md px-2 py-1 text-verdict-never hover:bg-verdict-never/10;
+.navIcon {
+  @apply h-5 w-5 fill-none stroke-current stroke-2;
+}
+
+.profileLink {
+  @apply inline-flex items-center gap-2 rounded-full px-1.5 py-1 hover:bg-ink-100/70 hover:text-scan-600;
+}
+
+.profileAvatar {
+  @apply flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-scan-400/20 font-display text-sm font-bold text-scan-600;
+}
+
+.profileAvatar img {
+  @apply h-full w-full object-cover;
 }
 
 .signupLink {
