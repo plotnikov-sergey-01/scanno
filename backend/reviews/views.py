@@ -6,7 +6,7 @@ from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 
 from catalog.models import Product
-from .models import Comment, Review, ReviewImage, Visibility
+from .models import Comment, CommentReaction, Review, ReviewImage, Visibility
 from .serializers import (
     CommentSerializer,
     ReviewCreateUpdateSerializer,
@@ -99,7 +99,7 @@ class ReviewDetailView(generics.RetrieveUpdateDestroyAPIView):
             not request.user.is_authenticated or request.user.id != review.user_id
         ):
             raise PermissionDenied("This review is private.")
-        return Response(ReviewDetailSerializer(review).data)
+        return Response(ReviewDetailSerializer(review, context={"request": request}).data)
 
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop("partial", False)
@@ -107,7 +107,7 @@ class ReviewDetailView(generics.RetrieveUpdateDestroyAPIView):
         serializer = ReviewCreateUpdateSerializer(review, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response(ReviewDetailSerializer(review).data)
+        return Response(ReviewDetailSerializer(review, context={"request": request}).data)
 
 
 class ReviewImageUploadView(views.APIView):
@@ -147,3 +147,42 @@ class ReviewCommentListCreateView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         review = self.get_review()
         serializer.save(user=self.request.user, review=review)
+
+
+class CommentReactionView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, comment_id):
+        comment = get_object_or_404(
+            Comment.objects.select_related("review", "user", "user__profile"),
+            pk=comment_id,
+            is_hidden=False,
+            review__is_hidden=False,
+        )
+        if comment.review.visibility == Visibility.PRIVATE and comment.review.user_id != request.user.id:
+            raise PermissionDenied("This review is private.")
+
+        reaction = request.data.get("reaction")
+        if reaction not in CommentReaction.ReactionKind.values:
+            return Response(
+                {"reaction": "Use 'like' or 'dislike'."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        current = CommentReaction.objects.filter(
+            comment=comment,
+            user=request.user,
+        ).first()
+        if current and current.reaction == reaction:
+            current.delete()
+        elif current:
+            current.reaction = reaction
+            current.save(update_fields=["reaction", "updated_at"])
+        else:
+            CommentReaction.objects.create(
+                comment=comment,
+                user=request.user,
+                reaction=reaction,
+            )
+
+        return Response(CommentSerializer(comment, context={"request": request}).data)

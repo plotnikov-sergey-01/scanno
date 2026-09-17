@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Comment, Review, ReviewImage
+from .models import Comment, CommentReaction, Review, ReviewImage
 
 
 class ReviewImageInline(admin.TabularInline):
@@ -39,3 +39,10 @@ class CommentAdmin(admin.ModelAdmin):
     @admin.action(description="Unhide selected comments")
     def unhide_comments(self, request, queryset):
         queryset.update(is_hidden=False)
+
+
+@admin.register(CommentReaction)
+class CommentReactionAdmin(admin.ModelAdmin):
+    list_display = ("id", "comment", "user", "reaction", "created_at")
+    list_filter = ("reaction",)
+    search_fields = ("comment__body", "user__email")

@@ -1,21 +1,46 @@
-.title {
-  @apply font-display text-3xl font-bold;
+.page {
+  min-width: 0;
+  letter-spacing: 0;
 }
 
-.subtitle {
-  @apply mt-2 text-ink-700/80;
+.title {
+  @apply font-display font-bold;
+  font-size: 28px;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.headingRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 24px 0 16px;
 }
 
 .feedFilters {
-  @apply mt-6 flex flex-wrap items-center gap-2;
+  display: flex;
+  max-width: 860px;
+  gap: 4px;
+  margin: 0 auto;
+  padding: 4px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  border: 1px solid #dce4ed;
+  border-radius: 8px;
+  background: #fff;
 }
 
 .feedButton,
 .activeFeedButton {
-  @apply rounded-md px-3 py-1.5 text-sm font-medium;
+  @apply rounded-md text-sm font-medium;
+  flex: 1 0 auto;
+  min-height: 44px;
+  padding: 8px 16px;
+  white-space: nowrap;
 }
 
-.feedButton,
 .layoutButton {
   @apply bg-white ring-1 ring-ink-100;
 }
@@ -25,7 +50,9 @@
 }
 
 .activeFeedButton {
-  @apply bg-scan-500 text-white;
+  background: #e2f7fe;
+  color: #0085b2;
+  font-weight: 600;
 }
 
 .layoutControls {
@@ -34,7 +61,9 @@
 
 .layoutButton,
 .activeLayoutButton {
-  @apply rounded-md px-2 py-1 text-sm;
+  @apply flex items-center justify-center rounded-md text-sm;
+  width: 44px;
+  height: 44px;
 }
 
 .activeLayoutButton {
@@ -52,10 +81,14 @@
 
 .empty {
   @apply text-ink-700/70;
+  grid-column: 1 / -1;
 }
 
-.productLink {
-  @apply text-sm font-medium text-scan-600;
+.reviewGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  align-items: stretch;
 }
 
 .neverMeta {
@@ -66,31 +99,32 @@
   @apply text-xs text-ink-700/60;
 }
 
-.browseSection {
-  @apply mt-14 border-t border-ink-100 pt-10;
+.page :is(button, input, select):focus-visible {
+  outline: 2px solid #0096c7;
+  outline-offset: 2px;
 }
 
-.browseTitle {
-  @apply font-display text-2xl font-bold;
+@media (min-width: 768px) {
+  .reviewGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+  }
+
+  .title {
+    font-size: 32px;
+  }
 }
 
-.browseFilters {
-  @apply mt-4 flex flex-wrap gap-3;
+@media (min-width: 1024px) {
+  .reviewGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+  }
 }
 
-.fieldLabel {
-  @apply text-sm;
-}
-
-.select,
-.categoryInput {
-  @apply ml-2 rounded border border-ink-100 bg-white px-2 py-1;
-}
-
-.categoryInput {
-  @apply w-40;
-}
-
-.browseResults {
-  @apply mt-4;
+@media (min-width: 1200px) {
+  .reviewGrid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+  }
 }

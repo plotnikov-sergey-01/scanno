@@ -27,6 +27,28 @@ function getToken(): string | null {
   return localStorage.getItem("scanno_access");
 }
 
+async function refreshAccessToken(): Promise<boolean> {
+  if (typeof window === "undefined") return false;
+  const refresh = localStorage.getItem("scanno_refresh");
+  if (!refresh) return false;
+
+  try {
+    const response = await fetch(`${API_URL}/auth/refresh/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refresh }),
+      cache: "no-store",
+    });
+    if (!response.ok) return false;
+    const data = (await response.json()) as { access?: string };
+    if (!data.access) return false;
+    localStorage.setItem("scanno_access", data.access);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export function setTokens(tokens: AuthTokens) {
   localStorage.setItem("scanno_access", tokens.access);
   localStorage.setItem("scanno_refresh", tokens.refresh);
@@ -41,7 +63,8 @@ async function request<T>(
   path: string,
   options: RequestInit = {},
   auth = false,
-  retryAsGuestOnInvalidToken = false
+  retryAsGuestOnInvalidToken = false,
+  retriedAfterRefresh = false,
 ): Promise<T> {
   const headers = new Headers(options.headers || {});
   if (!(options.body instanceof FormData) && !headers.has("Content-Type")) {
@@ -65,14 +88,15 @@ async function request<T>(
       typeof data === "object" && data && "detail" in data
         ? String((data as { detail: unknown }).detail)
         : res.statusText || "Request failed";
-    if (
-      auth &&
-      retryAsGuestOnInvalidToken &&
-      res.status === 401 &&
-      detail.toLowerCase().includes("token")
-    ) {
+    if (auth && res.status === 401 && !retriedAfterRefresh) {
+      if (await refreshAccessToken()) {
+        return request<T>(path, options, auth, retryAsGuestOnInvalidToken, true);
+      }
       clearTokens();
-      return request<T>(path, options, false);
+      if (retryAsGuestOnInvalidToken) {
+        return request<T>(path, options, false);
+      }
+      throw new ApiError("Your session has expired. Please log in again.", res.status, data);
     }
     throw new ApiError(detail, res.status, data);
   }
@@ -111,7 +135,7 @@ export const api = {
   me: () => request<Me>("/auth/me/", {}, true),
 
   getProduct: (id: number, auth = false) =>
-    request<Product>(`/products/${id}/`, {}, auth, true),
+    request<Product>(`/products/${id}/?refresh_off=1`, {}, auth, true),
 
   lookupBarcode: (barcode: string) =>
     request<Product>("/products/lookup/", {
@@ -186,12 +210,23 @@ export const api = {
   },
 
   getReviewComments: (reviewId: number) =>
-    request<Paginated<Comment> | Comment[]>(`/reviews/${reviewId}/comments/`),
+    request<Paginated<Comment> | Comment[]>(
+      `/reviews/${reviewId}/comments/`,
+      {},
+      true,
+      true,
+    ),
 
   addComment: (reviewId: number, body: string) =>
     request(`/reviews/${reviewId}/comments/`, {
       method: "POST",
       body: JSON.stringify({ body }),
+    }, true),
+
+  reactToComment: (commentId: number, reaction: "like" | "dislike") =>
+    request<Comment>(`/reviews/comments/${commentId}/reaction/`, {
+      method: "POST",
+      body: JSON.stringify({ reaction }),
     }, true),
 
   getUser: (username: string) => request(`/users/${username}/`),

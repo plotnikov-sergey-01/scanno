@@ -16,6 +16,7 @@ export type Product = {
   brand: string;
   category: string;
   description?: string;
+  ingredients_text?: string;
   image_url: string;
   off_id: string;
   source?: "catalog" | "user";
@@ -30,6 +31,7 @@ export type Product = {
     store_name: string;
     updated_at: string | null;
   }[];
+  off_stores?: string[];
   period_never_again?: number;
   period_review_count?: number;
   created_at: string;
@@ -57,6 +59,8 @@ export type Review = {
   user: PublicUser;
   product_id: number;
   product_name: string;
+  product_brand?: string;
+  product_image_url?: string;
   rating: number;
   verdict: "buy_again" | "never_again" | "neutral";
   body: string;
@@ -77,6 +81,9 @@ export type Comment = {
   id: number;
   user: PublicUser;
   body: string;
+  likes: number;
+  dislikes: number;
+  my_reaction: "like" | "dislike" | null;
   created_at: string;
   updated_at: string;
 };

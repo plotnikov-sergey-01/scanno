@@ -2,7 +2,7 @@ from django.conf import settings
 from rest_framework import serializers
 
 from accounts.serializers import PublicProfileSerializer
-from .models import Comment, Review, ReviewImage, Visibility
+from .models import Comment, CommentReaction, Review, ReviewImage, Visibility
 
 
 class ReviewImageSerializer(serializers.ModelSerializer):
@@ -14,11 +14,47 @@ class ReviewImageSerializer(serializers.ModelSerializer):
 
 class CommentSerializer(serializers.ModelSerializer):
     user = PublicProfileSerializer(read_only=True)
+    likes = serializers.SerializerMethodField()
+    dislikes = serializers.SerializerMethodField()
+    my_reaction = serializers.SerializerMethodField()
 
     class Meta:
         model = Comment
-        fields = ("id", "user", "body", "created_at", "updated_at")
-        read_only_fields = ("id", "user", "created_at", "updated_at")
+        fields = (
+            "id",
+            "user",
+            "body",
+            "likes",
+            "dislikes",
+            "my_reaction",
+            "created_at",
+            "updated_at",
+        )
+        read_only_fields = (
+            "id",
+            "user",
+            "likes",
+            "dislikes",
+            "my_reaction",
+            "created_at",
+            "updated_at",
+        )
+
+    def get_likes(self, obj):
+        return obj.reactions.filter(reaction=CommentReaction.ReactionKind.LIKE).count()
+
+    def get_dislikes(self, obj):
+        return obj.reactions.filter(reaction=CommentReaction.ReactionKind.DISLIKE).count()
+
+    def get_my_reaction(self, obj):
+        request = self.context.get("request")
+        if not request or not request.user.is_authenticated:
+            return None
+        return (
+            obj.reactions.filter(user=request.user)
+            .values_list("reaction", flat=True)
+            .first()
+        )
 
 
 class ReviewListSerializer(serializers.ModelSerializer):
@@ -26,6 +62,8 @@ class ReviewListSerializer(serializers.ModelSerializer):
     images = ReviewImageSerializer(many=True, read_only=True)
     product_id = serializers.IntegerField(source="product.id", read_only=True)
     product_name = serializers.CharField(source="product.name", read_only=True)
+    product_brand = serializers.CharField(source="product.brand", read_only=True)
+    product_image_url = serializers.SerializerMethodField()
     comment_count = serializers.SerializerMethodField()
 
     class Meta:
@@ -35,6 +73,8 @@ class ReviewListSerializer(serializers.ModelSerializer):
             "user",
             "product_id",
             "product_name",
+            "product_brand",
+            "product_image_url",
             "rating",
             "verdict",
             "body",
@@ -53,6 +93,9 @@ class ReviewListSerializer(serializers.ModelSerializer):
     def get_comment_count(self, obj):
         return obj.comments.filter(is_hidden=False).count()
 
+    def get_product_image_url(self, obj) -> str:
+        return obj.product.resolve_image_url(self.context.get("request"))
+
 
 class ReviewDetailSerializer(ReviewListSerializer):
     comments = serializers.SerializerMethodField()
@@ -62,7 +105,7 @@ class ReviewDetailSerializer(ReviewListSerializer):
 
     def get_comments(self, obj):
         qs = obj.comments.filter(is_hidden=False).select_related("user", "user__profile")
-        return CommentSerializer(qs, many=True).data
+        return CommentSerializer(qs, many=True, context=self.context).data
 
 
 class ReviewCreateUpdateSerializer(serializers.ModelSerializer):

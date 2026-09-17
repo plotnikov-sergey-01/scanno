@@ -218,13 +218,6 @@ export default function DiaryPage() {
                           {review.visibility === "public" ? "Public" : "Private"}
                         </span>
                       </div>
-                      <CardMenu
-                        isOpen={openMenuId === review.id}
-                        isDeleting={deletingId === review.id}
-                        productId={review.product_id}
-                        onToggle={() => setOpenMenuId(openMenuId === review.id ? null : review.id)}
-                        onDelete={() => onDeleteReview(review.id)}
-                      />
                     </div>
 
                     <div className={styles.reviewMetaRow}>
@@ -233,11 +226,18 @@ export default function DiaryPage() {
                     </div>
 
                     {review.body && <p className={styles.reviewBody}>{review.body}</p>}
+                    <div className={styles.reviewDetails}>
+                      <p>{formatPlace(review)}</p>
+                      <time>{formatDate(review.updated_at || review.created_at)}</time>
+                    </div>
                   </div>
-                  <div className={styles.reviewAside}>
-                    <p>{formatPlace(review)}</p>
-                    <time>{formatDate(review.updated_at || review.created_at)}</time>
-                  </div>
+                  <CardMenu
+                    isOpen={openMenuId === review.id}
+                    isDeleting={deletingId === review.id}
+                    productId={review.product_id}
+                    onToggle={() => setOpenMenuId(openMenuId === review.id ? null : review.id)}
+                    onDelete={() => onDeleteReview(review.id)}
+                  />
                 </article>
               ))}
             </div>

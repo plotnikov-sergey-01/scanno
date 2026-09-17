@@ -39,13 +39,28 @@ export default function ProductPage() {
   const [cropFile, setCropFile] = useState<File | null>(null);
   const [cropTarget, setCropTarget] = useState<"product" | "review" | null>(null);
   const [saving, setSaving] = useState(false);
+  const [editingProduct, setEditingProduct] = useState(false);
+  const [reviewFormOpen, setReviewFormOpen] = useState(false);
+  const [savingProduct, setSavingProduct] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [lightbox, setLightbox] = useState<{ images: string[]; index: number } | null>(null);
+  const [productForm, setProductForm] = useState({
+    name: "",
+    brand: "",
+    category: "",
+    description: "",
+  });
 
   async function reload() {
     setError("");
     const [p, r] = await Promise.all([api.getProduct(id, Boolean(user)), api.productReviews(id)]);
     setProduct(p);
+    setProductForm({
+      name: p.name || "",
+      brand: p.brand || "",
+      category: p.category || "",
+      description: p.description || "",
+    });
     setReviews(r.results);
     if (user) {
       const mine = r.results.find((rev) => rev.user.username === user.username) || null;
@@ -65,6 +80,7 @@ export default function ProductPage() {
     } else {
       setMyReview(null);
     }
+    setReviewFormOpen(false);
   }
 
   useEffect(() => {
@@ -158,6 +174,33 @@ export default function ProductPage() {
     }
   }
 
+  async function onProductSubmit(e: FormEvent) {
+    e.preventDefault();
+    if (!product) return;
+    const name = productForm.name.trim();
+    if (name.length < 2) {
+      setError("Product name must be at least 2 characters.");
+      return;
+    }
+
+    setSavingProduct(true);
+    setError("");
+    try {
+      const updated = await api.updateProduct(product.id, {
+        name,
+        brand: productForm.brand.trim(),
+        category: productForm.category.trim(),
+        description: productForm.description.trim(),
+      });
+      setProduct(updated);
+      setEditingProduct(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not update product");
+    } finally {
+      setSavingProduct(false);
+    }
+  }
+
   if (!product && !error) {
     return <LoadingLabel />;
   }
@@ -167,10 +210,19 @@ export default function ProductPage() {
 
   const stats = product.stats;
   const avg = Number(stats?.avg_rating || 0);
+  const reviewCount = stats?.review_count || 0;
+  const latestReview = reviews[0];
+  const latestReviewPrice =
+    latestReview?.price_paid != null && latestReview.price_currency
+      ? `${latestReview.price_paid} ${latestReview.price_currency}`
+      : "No price yet";
+  const latestReviewStore = latestReview?.store_name || latestReview?.city || "No store yet";
+  const ingredientsText = product.ingredients_text?.trim();
   const canEditImage = Boolean(product.can_edit_image);
+  const canEditProduct = canEditImage;
 
   return (
-    <div>
+    <div className={styles.page}>
       <div className={styles.productHeader}>
         <div className={styles.mediaColumn}>
           <button
@@ -190,6 +242,12 @@ export default function ProductPage() {
               </div>
             )}
           </button>
+          <div className={styles.verdictStrip} aria-label="Community verdict summary">
+            <span className={styles.buyCount}>{stats?.buy_again_count || 0} buy again</span>
+            <span className={styles.neverCount}>
+              {stats ? stats.never_again_pct : 0}% never again
+            </span>
+          </div>
           {canEditImage && (
             <label className={styles.productPhotoLabel}>
               {uploadingPhoto && <Spinner size="sm" />}
@@ -205,69 +263,131 @@ export default function ProductPage() {
             </label>
           )}
         </div>
-        <div>
-          <h1 className={styles.title}>{product.name}</h1>
-          <p className={styles.productMeta}>
-            {[product.brand, product.category].filter(Boolean).join(" · ")}
-          </p>
+        <div className={styles.productInfo}>
+          <div className={styles.productHeroTop}>
+            <div className={styles.productTitleBlock}>
+              <h1 className={styles.title}>{product.name}</h1>
+              <p className={styles.productMeta}>
+                {[product.brand, product.category].filter(Boolean).join(" · ") || "Product"}
+              </p>
+              {product.barcode && (
+                <p className={styles.barcode}>{product.barcode}</p>
+              )}
+            </div>
+            <div className={styles.ratingCard} aria-label="Average product rating">
+              {reviewCount > 0 ? (
+                <div className={styles.ratingRow}>
+                  <Stars rating={Math.round(avg)} />
+                  <span className={styles.average}>{avg.toFixed(1)}</span>
+                  <span className={styles.reviewCount}>
+                    {reviewCount} {reviewCount === 1 ? "review" : "reviews"}
+                  </span>
+                </div>
+              ) : (
+                <div className={styles.ratingRow}>
+                  <span className={styles.noRatingMark}>New</span>
+                  <span className={styles.reviewCount}>No reviews yet</span>
+                </div>
+              )}
+            </div>
+          </div>
           {product.description && (
             <p className={styles.description}>{product.description}</p>
           )}
-          {product.barcode && (
-            <p className={styles.barcode}>{product.barcode}</p>
+          {canEditProduct && (
+            <button
+              type="button"
+              className={styles.editProductButton}
+              onClick={() => setEditingProduct((value) => !value)}
+            >
+              <EditIcon />
+              {editingProduct ? "Cancel edit" : "Edit product"}
+            </button>
           )}
-          {stats && stats.review_count > 0 ? (
-            <div className={styles.stats}>
-              <div className={styles.ratingRow}>
-                <Stars rating={Math.round(avg)} />
-                <span className={styles.average}>{avg.toFixed(1)}</span>
-                <span className={styles.reviewCount}>{stats.review_count} reviews</span>
-              </div>
-              <p className={styles.verdictStats}>
-                <span className={styles.buyCount}>{stats.buy_again_count} buy again</span>
-                {" · "}
-                <span className={styles.neverCount}>
-                  {stats.never_again_pct}% never again
-                </span>
-              </p>
+        </div>
+        <div className={styles.infoGrid}>
+          <section className={styles.apiInfoBlock}>
+            <p className={styles.ingredientsLine}>
+              <span className={styles.infoLabel}>Ingredients:</span>{" "}
+              <span className={styles.ingredientsText}>
+                {ingredientsText || "No ingredient list from Open Food Facts yet."}
+              </span>
+            </p>
+          </section>
+          <section className={styles.priceBlock}>
+            <div className={styles.priceSummary}>
+              <span className={styles.priceMetaLabel}>Price:</span>
+              <span className={styles.priceValue}>{latestReviewPrice}</span>
+              <span className={styles.priceMetaLabel}>Store:</span>
+              <span className={styles.priceValue}>{latestReviewStore}</span>
             </div>
-          ) : (
-            <p className={styles.emptyStats}>Be the first to review this product.</p>
-          )}
-          {product.recent_prices && product.recent_prices.length > 0 && (
-            <div className={styles.prices}>
-              <p className={styles.pricesTitle}>Prices people paid</p>
-              <ul className={styles.pricesList}>
-                {product.recent_prices.map((p, i) => (
-                  <li key={`${p.amount}-${p.currency}-${i}`}>
-                    {p.amount} {p.currency}
-                    {(p.store_name || p.city) && (
-                      <span className={styles.priceLocation}>
-                        {" "}
-                        · {[p.store_name, p.city].filter(Boolean).join(", ")}
-                      </span>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+          </section>
         </div>
       </div>
 
-      <section className={styles.reviewSection}>
-        <h2 className={styles.sectionTitle}>
-          {myReview ? "Edit your review" : "Your review"}
-        </h2>
-        {myReview && (
-          <p className={styles.reviewHint}>
-            One review per product — updates replace your previous verdict. History of old versions
-            is not shown (for now).
-          </p>
-        )}
+      {canEditProduct && editingProduct && (
+        <section className={styles.productEditSection}>
+          <h2 className={styles.sectionTitle}>Edit product</h2>
+          <form onSubmit={onProductSubmit} className={styles.productEditForm}>
+            <input
+              value={productForm.name}
+              onChange={(e) => setProductForm({ ...productForm, name: e.target.value })}
+              placeholder="Product name"
+              className={styles.productEditInput}
+              required
+            />
+            <input
+              value={productForm.brand}
+              onChange={(e) => setProductForm({ ...productForm, brand: e.target.value })}
+              placeholder="Brand"
+              className={styles.productEditInput}
+            />
+            <input
+              value={productForm.category}
+              onChange={(e) => setProductForm({ ...productForm, category: e.target.value })}
+              placeholder="Category"
+              className={styles.productEditInput}
+            />
+            <textarea
+              value={productForm.description}
+              onChange={(e) => setProductForm({ ...productForm, description: e.target.value })}
+              placeholder="Description"
+              rows={3}
+              className={styles.productEditTextarea}
+            />
+            <button type="submit" disabled={savingProduct} className={styles.saveProductButton}>
+              {savingProduct && <Spinner size="sm" onDark />}
+              {savingProduct ? "Saving..." : "Save product"}
+            </button>
+          </form>
+        </section>
+      )}
+
+      <section className={styles.reviewSection} id="your-review">
+        <div className={styles.reviewSectionHeader}>
+          <div>
+            <h2 className={styles.sectionTitle}>
+              {myReview ? "Edit your review" : "Your review"}
+            </h2>
+            {myReview && (
+              <p className={styles.reviewHint}>One review per product. Updates replace your previous verdict.</p>
+            )}
+          </div>
+          {user && (
+            <button
+              type="button"
+              className={styles.toggleReviewButton}
+              onClick={() => setReviewFormOpen((value) => !value)}
+              aria-expanded={reviewFormOpen}
+            >
+              {reviewFormOpen ? "Hide form" : myReview ? "Edit review" : "Write review"}
+              <ChevronIcon open={reviewFormOpen} />
+            </button>
+          )}
+        </div>
         {!user ? (
           <GuestActionPrompt text="Log in or create an account to add a review." />
-        ) : (
+        ) : reviewFormOpen ? (
           <form onSubmit={onSubmit} className={styles.reviewForm}>
             <div className={styles.selectRow}>
               <label className={styles.fieldLabel}>
@@ -399,11 +519,14 @@ export default function ProductPage() {
               {saving ? "Saving…" : myReview ? "Update review" : "Save review"}
             </button>
           </form>
-        )}
+        ) : null}
       </section>
 
       <section className={styles.publicReviews}>
-        <h2 className={styles.sectionTitle}>Reviews</h2>
+        <div className={styles.reviewsHeader}>
+          <h2 className={styles.reviewsTitle}>Reviews</h2>
+          <span>{reviews.length} total</span>
+        </div>
         {reviews.length === 0 ? (
           <p className={styles.noReviews}>No public reviews yet.</p>
         ) : (
@@ -412,6 +535,14 @@ export default function ProductPage() {
               key={r.id}
               review={r}
               onOpenImage={(images, index) => setLightbox({ images, index })}
+              onEditReview={
+                user?.username === r.user.username
+                  ? () => {
+                      setReviewFormOpen(true);
+                      document.getElementById("your-review")?.scrollIntoView({ behavior: "smooth" });
+                    }
+                  : undefined
+              }
             />
           ))
         )}
@@ -446,5 +577,26 @@ export default function ProductPage() {
         />
       )}
     </div>
+  );
+}
+
+function EditIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className={styles.buttonIcon}>
+      <path d="m4 16.5-.8 4.3 4.3-.8L18.6 8.9 15.1 5.4 4 16.5Z" />
+      <path d="m13.8 6.7 3.5 3.5" />
+    </svg>
+  );
+}
+
+function ChevronIcon({ open }: { open: boolean }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      className={`${styles.buttonIcon} ${open ? styles.chevronOpen : ""}`}
+    >
+      <path d="m6 9 6 6 6-6" />
+    </svg>
   );
 }

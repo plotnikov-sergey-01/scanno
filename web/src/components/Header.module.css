@@ -1,13 +1,16 @@
 .header {
-  @apply sticky top-0 z-40 border-b border-ink-100/80 bg-ink-50/80 backdrop-blur-md;
+  @apply sticky top-0 z-40 border-b border-ink-100/80 bg-ink-50/95 backdrop-blur-md;
 }
 
 .inner {
-  @apply mx-auto flex max-w-5xl items-center justify-between px-4 py-3;
+  @apply mx-auto grid max-w-5xl items-center gap-x-3 px-4;
+  grid-template-columns: auto minmax(0, 1fr);
 }
 
 .brand {
-  @apply inline-flex shrink-0 items-start gap-1 whitespace-nowrap font-display text-2xl font-bold tracking-tight text-ink-900;
+  @apply inline-flex shrink-0 items-start gap-1 whitespace-nowrap font-display text-2xl font-bold text-ink-900;
+  padding: 10px 0;
+  letter-spacing: 0;
 }
 
 .brandDot {
@@ -15,23 +18,51 @@
 }
 
 .nav {
-  @apply flex items-center gap-4 text-sm font-medium text-ink-700;
+  @apply flex items-center justify-between text-sm font-medium text-ink-700;
+  grid-column: 1 / -1;
+  grid-row: 2;
 }
 
 .navLink {
-  @apply inline-flex items-center gap-1.5 hover:text-scan-600;
+  @apply inline-flex items-center justify-center gap-2 hover:text-scan-600;
+  min-height: 44px;
+  padding: 8px 10px;
+  border-bottom: 3px solid transparent;
+  white-space: nowrap;
+}
+
+.navLink[aria-current="page"] {
+  border-bottom-color: #00b4ef;
+  color: #005d7d;
+  font-weight: 600;
 }
 
 .navIcon {
-  @apply h-5 w-5 fill-none stroke-current stroke-2;
+  @apply h-5 w-5 shrink-0;
+  stroke-width: 1.8;
+}
+
+.account {
+  @apply flex min-w-0 items-center justify-end gap-2 text-sm font-medium;
+  grid-column: 2;
+  grid-row: 1;
+  min-height: 48px;
 }
 
 .profileLink {
-  @apply inline-flex items-center gap-2 rounded-full px-1.5 py-1 hover:bg-ink-100/70 hover:text-scan-600;
+  @apply inline-flex min-w-0 items-center gap-2 rounded-full px-1.5 py-1 hover:bg-ink-100/70 hover:text-scan-600;
+  min-height: 44px;
+}
+
+.profileName {
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .profileAvatar {
-  @apply flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-scan-400/20 font-display text-sm font-bold text-scan-600;
+  @apply flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-scan-400/20 font-display text-sm font-bold text-scan-600;
 }
 
 .profileAvatar img {
@@ -39,5 +70,59 @@
 }
 
 .signupLink {
-  @apply rounded-md bg-scan-500 px-3 py-1.5 text-white shadow-sm hover:bg-scan-600;
+  @apply inline-flex items-center rounded-md bg-scan-500 px-3 py-2 text-white hover:bg-scan-600;
+  min-height: 44px;
+  white-space: nowrap;
+}
+
+.header a:focus-visible {
+  outline: 2px solid #0096c7;
+  outline-offset: 2px;
+}
+
+.exploreHeader {
+  background: #ffffffed;
+}
+
+.exploreHeader .inner {
+  max-width: 1440px;
+}
+
+@media (min-width: 640px) {
+  .inner {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 20px;
+    min-height: 68px;
+  }
+
+  .nav {
+    grid-column: 2;
+    grid-row: 1;
+    gap: 8px;
+    align-self: stretch;
+  }
+
+  .account {
+    grid-column: 3;
+  }
+
+  .navLink {
+    padding: 8px;
+    height: 100%;
+  }
+}
+
+@media (min-width: 1024px) {
+  .exploreHeader .brand {
+    font-size: 32px;
+  }
+
+  .exploreHeader .inner {
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  }
+
+  .exploreHeader .nav {
+    gap: 24px;
+    font-size: 16px;
+  }
 }

@@ -36,6 +36,7 @@ class ProductSerializer(serializers.ModelSerializer):
     can_edit_image = serializers.SerializerMethodField()
     created_by_id = serializers.IntegerField(read_only=True, allow_null=True)
     recent_prices = serializers.SerializerMethodField()
+    off_stores = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
@@ -46,6 +47,7 @@ class ProductSerializer(serializers.ModelSerializer):
             "brand",
             "category",
             "description",
+            "ingredients_text",
             "image_url",
             "off_id",
             "source",
@@ -54,6 +56,7 @@ class ProductSerializer(serializers.ModelSerializer):
             "merged_into",
             "stats",
             "recent_prices",
+            "off_stores",
             "created_at",
             "updated_at",
         )
@@ -65,6 +68,7 @@ class ProductSerializer(serializers.ModelSerializer):
             "can_edit_image",
             "merged_into",
             "recent_prices",
+            "off_stores",
             "created_at",
             "updated_at",
         )
@@ -102,6 +106,24 @@ class ProductSerializer(serializers.ModelSerializer):
             for r in rows
         ]
 
+    def get_off_stores(self, obj):
+        raw_off = obj.raw_off or {}
+        values = []
+        for key in ("stores", "purchase_places"):
+            value = raw_off.get(key)
+            if isinstance(value, str):
+                values.extend(item.strip() for item in value.split(","))
+            elif isinstance(value, list):
+                values.extend(str(item).strip() for item in value)
+        unique = []
+        seen = set()
+        for item in values:
+            normalized = item.lower()
+            if item and normalized not in seen:
+                unique.append(item)
+                seen.add(normalized)
+        return unique[:8]
+
 
 class ProductLookupSerializer(serializers.Serializer):
     barcode = serializers.CharField(max_length=64)
@@ -110,7 +132,7 @@ class ProductLookupSerializer(serializers.Serializer):
 class ProductCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
-        fields = ("barcode", "name", "brand", "category", "description", "image_url")
+        fields = ("barcode", "name", "brand", "category", "description", "ingredients_text", "image_url")
 
 
 class ProductUpdateSerializer(serializers.ModelSerializer):

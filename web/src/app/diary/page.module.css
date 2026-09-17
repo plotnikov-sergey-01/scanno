@@ -141,7 +141,7 @@
 }
 
 .reviewCard {
-  @apply grid gap-4 rounded-lg border border-ink-100 bg-white/85 p-4 sm:grid-cols-[6rem_1fr] xl:grid-cols-[6rem_1fr_17rem];
+  @apply relative grid gap-4 rounded-lg border border-ink-100 bg-white/85 p-4 pr-14 sm:grid-cols-[6rem_1fr];
 }
 
 .reviewThumb {
@@ -157,7 +157,7 @@
 }
 
 .reviewTitleRow {
-  @apply flex items-start justify-between gap-3;
+  @apply flex items-start gap-3;
 }
 
 .productLink {
@@ -176,16 +176,16 @@
   @apply mt-3 line-clamp-2 text-ink-700;
 }
 
-.reviewAside {
-  @apply text-sm text-ink-700/65 xl:pt-10;
+.reviewDetails {
+  @apply mt-3 flex flex-wrap gap-x-3 gap-y-1 text-sm text-ink-700/65;
 }
 
-.reviewAside time {
-  @apply mt-1 block;
+.reviewDetails time {
+  @apply block;
 }
 
 .cardMenu {
-  @apply relative shrink-0;
+  @apply absolute right-4 top-4;
 }
 
 .cardMenuButton {

@@ -4,6 +4,7 @@ from .views import (
     MyReviewsView,
     ProductReviewListCreateView,
     ReviewCommentListCreateView,
+    CommentReactionView,
     ReviewDetailView,
     ReviewImageUploadView,
 )
@@ -14,4 +15,5 @@ urlpatterns = [
     path("reviews/<int:pk>/", ReviewDetailView.as_view(), name="review-detail"),
     path("reviews/<int:pk>/images/", ReviewImageUploadView.as_view(), name="review-images"),
     path("reviews/<int:pk>/comments/", ReviewCommentListCreateView.as_view(), name="review-comments"),
+    path("reviews/comments/<int:comment_id>/reaction/", CommentReactionView.as_view(), name="comment-reaction"),
 ]

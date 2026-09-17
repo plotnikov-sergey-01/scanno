@@ -19,6 +19,7 @@ web/.env.local
 mobile/.env
 backend/.env
 data/off/
+data/design-previews/
 
 *.tsbuildinfo
 

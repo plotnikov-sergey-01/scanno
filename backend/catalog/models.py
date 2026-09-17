@@ -12,6 +12,7 @@ class Product(models.Model):
     brand = models.CharField(max_length=255, blank=True)
     category = models.CharField(max_length=255, blank=True)
     description = models.TextField(blank=True)
+    ingredients_text = models.TextField(blank=True)
     image_url = models.URLField(blank=True)
     image = models.ImageField(upload_to="products/", blank=True, null=True)
     off_id = models.CharField(max_length=64, blank=True, db_index=True)

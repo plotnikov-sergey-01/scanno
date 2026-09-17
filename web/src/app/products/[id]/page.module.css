@@ -2,16 +2,20 @@
   @apply text-verdict-never;
 }
 
+.page {
+  @apply space-y-7;
+}
+
 .productHeader {
-  @apply flex flex-col gap-6 md:flex-row;
+  @apply grid gap-6 rounded-2xl border border-ink-100 bg-white p-5 md:grid-cols-[minmax(16rem,22rem)_1fr] md:content-start md:p-7;
 }
 
 .mediaColumn {
-  @apply shrink-0;
+  @apply order-2 min-w-0 md:order-none md:row-span-2;
 }
 
 .productImageButton {
-  @apply block h-52 w-52 overflow-hidden rounded-xl bg-ink-100;
+  @apply block aspect-[4/3] w-full overflow-hidden rounded-xl border border-ink-100 bg-ink-100;
 }
 
 .productImage {
@@ -19,11 +23,11 @@
 }
 
 .noProductPhoto {
-  @apply flex h-full items-center justify-center px-3 text-center text-xs text-ink-700/50;
+  @apply flex h-full items-center justify-center px-3 text-center text-sm font-semibold text-ink-700/50;
 }
 
 .productPhotoLabel {
-  @apply mt-2 flex cursor-pointer items-center gap-2 text-sm text-scan-600 hover:underline;
+  @apply mt-3 inline-flex cursor-pointer items-center gap-2 rounded-lg border border-ink-100 bg-white px-3 py-2 text-sm font-semibold text-scan-600 hover:border-scan-400 hover:bg-scan-400/10;
 }
 
 .hiddenInput {
@@ -31,27 +35,77 @@
 }
 
 .title {
-  @apply font-display text-3xl font-bold;
+  @apply font-display text-3xl font-bold leading-tight md:text-4xl;
+}
+
+.productInfo {
+  @apply order-1 min-w-0 flex-1 py-1 md:order-none md:py-3;
+}
+
+.productHeroTop {
+  @apply grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4;
+}
+
+.productTitleBlock {
+  @apply min-w-0;
+}
+
+.editProductButton,
+.saveProductButton {
+  @apply inline-flex items-center justify-center gap-2 rounded-lg bg-scan-500 px-5 py-3 font-semibold text-white hover:bg-scan-600 disabled:opacity-50;
+}
+
+.editProductButton {
+  @apply mt-4;
+}
+
+.buttonIcon {
+  @apply h-5 w-5 fill-none stroke-current stroke-2;
+}
+
+.productEditSection {
+  @apply mt-8 rounded-xl border border-ink-100 bg-white/80 p-5;
+}
+
+.productEditForm {
+  @apply mt-4 grid gap-3 md:grid-cols-3;
+}
+
+.productEditInput,
+.productEditTextarea {
+  @apply min-w-0 rounded-lg border border-ink-100 bg-white px-3 py-2 outline-none focus:border-scan-500;
+}
+
+.productEditTextarea {
+  @apply md:col-span-3;
+}
+
+.saveProductButton {
+  @apply md:w-fit;
 }
 
 .productMeta {
-  @apply mt-1 text-ink-700;
+  @apply mt-2 min-h-6 text-ink-700/70;
 }
 
 .description {
-  @apply mt-3 max-w-xl text-ink-700/90;
+  @apply mt-4 max-w-xl text-ink-700/90;
 }
 
 .barcode {
   @apply mt-1 font-mono text-sm text-ink-700/60;
 }
 
-.stats {
-  @apply mt-4 space-y-1;
+.ratingCard {
+  @apply min-w-0 px-1 py-2 text-right;
 }
 
 .ratingRow {
-  @apply flex items-center gap-3;
+  @apply flex items-center justify-end gap-2 whitespace-nowrap;
+}
+
+.ratingRow :global(svg) {
+  @apply h-4 w-4;
 }
 
 .average {
@@ -59,27 +113,72 @@
 }
 
 .reviewCount {
-  @apply text-ink-700/70;
+  @apply text-xs text-ink-700/60;
 }
 
-.verdictStats {
-  @apply text-sm;
+.noRatingMark {
+  @apply font-display text-xl font-bold text-ink-900;
+}
+
+.verdictStrip {
+  @apply mt-3 grid grid-cols-2 gap-3 text-center text-sm;
 }
 
 .buyCount {
-  @apply text-verdict-buy;
+  @apply rounded-full bg-verdict-buy/10 px-3 py-2 font-semibold text-verdict-buy;
 }
 
 .neverCount {
-  @apply text-verdict-never;
+  @apply rounded-full bg-verdict-never/10 px-3 py-2 font-semibold text-verdict-never;
 }
 
 .emptyStats {
   @apply mt-4 text-ink-700/70;
 }
 
-.prices {
-  @apply mt-4;
+.infoGrid {
+  @apply order-3 grid gap-3 md:order-none md:col-start-2 md:row-start-2;
+}
+
+.apiInfoBlock,
+.priceBlock {
+  @apply border-b border-ink-100 pb-3;
+}
+
+.priceBlock {
+  @apply space-y-1 border-b-0 pb-0;
+}
+
+.priceSummary {
+  @apply flex flex-wrap items-baseline gap-x-3 gap-y-1;
+}
+
+.infoLabel {
+  @apply text-xs font-bold uppercase tracking-wide text-ink-700/60;
+}
+
+.ingredientsText {
+  @apply text-xs leading-relaxed text-ink-700/75;
+}
+
+.ingredientsLine {
+  @apply text-xs leading-relaxed;
+}
+
+.emptyInfo {
+  @apply mt-2 text-sm text-ink-700/55;
+}
+
+.priceValue {
+  @apply break-words font-display text-base font-bold leading-tight text-ink-900;
+}
+
+.priceValueMuted {
+  @apply mt-1 font-display text-2xl font-bold text-ink-700/45;
+}
+
+.priceMetaLabel {
+  @apply font-display text-base font-bold leading-tight text-ink-900;
 }
 
 .pricesTitle {
@@ -95,15 +194,27 @@
 }
 
 .reviewSection {
-  @apply mt-10 border-t border-ink-100 pt-8;
+  @apply rounded-2xl border border-ink-100 bg-white p-5 md:p-6;
 }
 
 .sectionTitle {
-  @apply font-display text-xl font-bold;
+  @apply font-display text-2xl font-bold;
+}
+
+.reviewSectionHeader {
+  @apply flex flex-wrap items-start justify-between gap-4;
+}
+
+.toggleReviewButton {
+  @apply inline-flex items-center justify-center gap-2 rounded-lg border border-ink-100 bg-white px-4 py-2 font-semibold text-ink-700 hover:border-scan-400 hover:text-scan-600;
+}
+
+.chevronOpen {
+  @apply rotate-180;
 }
 
 .reviewHint {
-  @apply mt-1 text-sm text-ink-700/70;
+  @apply mt-1 text-sm text-ink-700/65;
 }
 
 .loginPrompt {
@@ -115,23 +226,23 @@
 }
 
 .reviewForm {
-  @apply mt-4 space-y-3;
+  @apply mt-5 space-y-4 rounded-xl border border-ink-100 bg-ink-50/70 p-4;
 }
 
 .selectRow {
-  @apply flex flex-wrap gap-4;
+  @apply grid gap-3 md:grid-cols-3;
 }
 
 .fieldLabel {
-  @apply text-sm;
+  @apply text-sm font-semibold text-ink-900;
 }
 
 .inlineSelect {
-  @apply ml-2 rounded border border-ink-100 bg-white px-2 py-1;
+  @apply mt-2 block w-full rounded-lg border border-ink-100 bg-white px-3 py-2 font-normal text-ink-700 outline-none focus:border-scan-500;
 }
 
 .reviewTextarea {
-  @apply w-full rounded-lg border border-ink-100 bg-white px-3 py-2;
+  @apply w-full rounded-lg border border-ink-100 bg-white px-4 py-3 outline-none focus:border-scan-500;
 }
 
 .locationGrid {
@@ -139,7 +250,7 @@
 }
 
 .locationInput {
-  @apply min-w-0 rounded-lg border border-ink-100 px-3 py-2;
+  @apply min-w-0 rounded-lg border border-ink-100 bg-white px-4 py-3 outline-none focus:border-scan-500;
 }
 
 .priceRow {
@@ -147,11 +258,11 @@
 }
 
 .priceInput {
-  @apply flex-1 rounded-lg border border-ink-100 px-3 py-2;
+  @apply flex-1 rounded-lg border border-ink-100 bg-white px-4 py-3 outline-none focus:border-scan-500;
 }
 
 .currencySelect {
-  @apply w-28 rounded-lg border border-ink-100 bg-white px-2 py-2;
+  @apply w-28 rounded-lg border border-ink-100 bg-white px-3 py-3 outline-none focus:border-scan-500;
 }
 
 .priceHint {
@@ -183,11 +294,23 @@
 }
 
 .submitButton {
-  @apply inline-flex items-center justify-center gap-2 rounded-lg bg-scan-500 px-4 py-2 font-semibold text-white hover:bg-scan-600 disabled:opacity-50;
+  @apply inline-flex items-center justify-center gap-2 rounded-lg bg-scan-500 px-5 py-3 font-semibold text-white hover:bg-scan-600 disabled:opacity-50;
 }
 
 .publicReviews {
-  @apply mt-10;
+  @apply space-y-4 rounded-2xl border border-ink-100 bg-white/70 p-4 md:p-5;
+}
+
+.reviewsHeader {
+  @apply flex items-end justify-between gap-3;
+}
+
+.reviewsTitle {
+  @apply font-display text-3xl font-bold;
+}
+
+.reviewsHeader span {
+  @apply text-sm text-ink-700/60;
 }
 
 .noReviews {

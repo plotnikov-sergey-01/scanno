@@ -14,7 +14,7 @@ from .serializers import (
     ProductSerializer,
     ProductUpdateSerializer,
 )
-from .services import OpenFoodFactsClient, upsert_from_off
+from .services import OpenFoodFactsClient, refresh_missing_off_data, upsert_from_off
 
 
 class ProductListCreateView(generics.ListCreateAPIView):
@@ -107,6 +107,8 @@ class ProductDetailView(generics.RetrieveUpdateAPIView):
         product = self.get_object()
         if product.merged_into_id:
             canonical = product.merged_into
+            if request.query_params.get("refresh_off") == "1":
+                refresh_missing_off_data(canonical)
             return Response(
                 {
                     **ProductSerializer(canonical, context={"request": request}).data,
@@ -114,6 +116,8 @@ class ProductDetailView(generics.RetrieveUpdateAPIView):
                     "detail": "This product was merged into a canonical card.",
                 }
             )
+        if request.query_params.get("refresh_off") == "1":
+            refresh_missing_off_data(product)
         return Response(ProductSerializer(product, context={"request": request}).data)
 
     def partial_update(self, request, *args, **kwargs):

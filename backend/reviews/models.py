@@ -65,3 +65,30 @@ class Comment(models.Model):
 
     def __str__(self):
         return f"Comment {self.pk} on review {self.review_id}"
+
+
+class CommentReaction(models.Model):
+    class ReactionKind(models.TextChoices):
+        LIKE = "like", "Like"
+        DISLIKE = "dislike", "Dislike"
+
+    comment = models.ForeignKey(Comment, on_delete=models.CASCADE, related_name="reactions")
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="comment_reactions",
+    )
+    reaction = models.CharField(max_length=7, choices=ReactionKind.choices)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["comment", "user"],
+                name="unique_comment_reaction_per_user",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.reaction} by {self.user_id} on comment {self.comment_id}"
