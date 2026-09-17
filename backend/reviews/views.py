@@ -6,7 +6,7 @@ from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 
 from catalog.models import Product
-from .models import Comment, CommentReaction, Review, ReviewImage, Visibility
+from .models import Comment, CommentReaction, Review, ReviewImage, Visibility, visible_comment_prefetch
 from .serializers import (
     CommentSerializer,
     ReviewCreateUpdateSerializer,
@@ -35,7 +35,7 @@ class ProductReviewListCreateView(generics.ListCreateAPIView):
         qs = (
             Review.objects.filter(product=product, is_hidden=False)
             .select_related("user", "user__profile", "product")
-            .prefetch_related("images", "comments")
+            .prefetch_related("images", visible_comment_prefetch())
         )
         user = self.request.user
         if user.is_authenticated:
@@ -58,7 +58,10 @@ class ProductReviewListCreateView(generics.ListCreateAPIView):
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         review = serializer.instance
-        return Response(ReviewDetailSerializer(review).data, status=status.HTTP_201_CREATED)
+        return Response(
+            ReviewDetailSerializer(review, context={"request": request}).data,
+            status=status.HTTP_201_CREATED,
+        )
 
 
 class MyReviewsView(generics.ListAPIView):
@@ -69,7 +72,7 @@ class MyReviewsView(generics.ListAPIView):
         qs = (
             Review.objects.filter(user=self.request.user, is_hidden=False)
             .select_related("user", "user__profile", "product")
-            .prefetch_related("images")
+            .prefetch_related("images", visible_comment_prefetch())
         )
         verdict = self.request.query_params.get("verdict")
         if verdict:
@@ -83,7 +86,7 @@ class MyReviewsView(generics.ListAPIView):
 class ReviewDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
     queryset = Review.objects.select_related("user", "user__profile", "product").prefetch_related(
-        "images", "comments", "comments__user", "comments__user__profile"
+        "images", visible_comment_prefetch()
     )
 
     def get_serializer_class(self):
@@ -129,6 +132,7 @@ class ReviewImageUploadView(views.APIView):
 class ReviewCommentListCreateView(generics.ListCreateAPIView):
     serializer_class = CommentSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    pagination_class = None
 
     def get_review(self):
         review = get_object_or_404(Review, pk=self.kwargs["pk"], is_hidden=False)
@@ -140,13 +144,35 @@ class ReviewCommentListCreateView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         review = self.get_review()
-        return Comment.objects.filter(review=review, is_hidden=False).select_related(
-            "user", "user__profile"
+        return (
+            Comment.objects.filter(review=review, is_hidden=False)
+            .select_related("user", "user__profile")
+            .prefetch_related("reactions")
         )
 
     def perform_create(self, serializer):
         review = self.get_review()
         serializer.save(user=self.request.user, review=review)
+
+
+class CommentDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = CommentSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
+    queryset = Comment.objects.select_related(
+        "review", "user", "user__profile"
+    ).prefetch_related("reactions")
+    http_method_names = ["get", "patch", "delete", "head", "options"]
+
+    def get_object(self):
+        comment = super().get_object()
+        if comment.is_hidden or comment.review.is_hidden:
+            raise PermissionDenied("Comment is hidden.")
+        if comment.review.visibility == Visibility.PRIVATE and (
+            not self.request.user.is_authenticated
+            or self.request.user.id != comment.review.user_id
+        ):
+            raise PermissionDenied("This review is private.")
+        return comment
 
 
 class CommentReactionView(views.APIView):

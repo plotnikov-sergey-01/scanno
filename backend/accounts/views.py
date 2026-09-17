@@ -4,6 +4,7 @@ from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from allauth.socialaccount.providers.linkedin_oauth2.views import LinkedInOAuth2Adapter
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
 from rest_framework import generics, permissions
+from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from dj_rest_auth.registration.views import SocialLoginView
@@ -18,7 +19,7 @@ from .serializers import (
 )
 
 from reviews.serializers import ReviewListSerializer
-from reviews.models import Review, Visibility
+from reviews.models import Review, Visibility, visible_comment_prefetch
 
 User = get_user_model()
 
@@ -53,6 +54,7 @@ class LinkedInLoginView(SocialLoginView):
 
 class MeView(generics.RetrieveUpdateAPIView):
     serializer_class = UserSerializer
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
 
     def get_object(self):
         user = self.request.user
@@ -71,14 +73,19 @@ class MeView(generics.RetrieveUpdateAPIView):
             for k, v in request.data.items()
             if k in ("display_name", "bio", "avatar")
         }
+        if "avatar" in request.FILES:
+            profile_data["avatar"] = request.FILES["avatar"]
         if "username" in request.data:
             user.username = request.data["username"]
             user.save(update_fields=["username"])
         if profile_data:
-            serializer = ProfileSerializer(user.profile, data=profile_data, partial=True)
+            serializer = ProfileSerializer(
+                user.profile, data=profile_data, partial=True, context={"request": request}
+            )
             serializer.is_valid(raise_exception=True)
             serializer.save()
-        return Response(UserSerializer(user).data)
+            user.refresh_from_db()
+        return Response(UserSerializer(user, context={"request": request}).data)
 
 
 class PublicUserView(generics.RetrieveAPIView):
@@ -97,7 +104,7 @@ class PublicUserReviewsView(generics.ListAPIView):
         qs = (
             Review.objects.filter(user__username=username, is_hidden=False)
             .select_related("product", "user", "user__profile")
-            .prefetch_related("images")
+            .prefetch_related("images", visible_comment_prefetch())
         )
         if self.request.user.is_authenticated and self.request.user.username == username:
             return qs

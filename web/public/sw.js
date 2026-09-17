@@ -1,5 +1,5 @@
 /* Scanno SW — network-first for pages; do not freeze HTML without CSS. */
-const CACHE = "scanno-static-v2";
+const CACHE = "scanno-static-v3";
 const STATIC = ["/manifest.webmanifest", "/favicon.svg", "/icons/icon-192.png", "/icons/icon-512.png"];
 
 self.addEventListener("install", (event) => {
@@ -22,6 +22,7 @@ self.addEventListener("fetch", (event) => {
 
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
+  if (url.pathname.startsWith("/api/")) return;
 
   // Always network-first for documents and Next assets so CSS/JS stay fresh.
   if (

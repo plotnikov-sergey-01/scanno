@@ -302,15 +302,34 @@
 }
 
 .reviewsHeader {
-  @apply flex items-end justify-between gap-3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.reviewsHeading {
+  min-width: 0;
 }
 
 .reviewsTitle {
   @apply font-display text-3xl font-bold;
 }
 
-.reviewsHeader span {
-  @apply text-sm text-ink-700/60;
+.reviewsCount {
+  @apply mt-0.5 block text-sm text-ink-700/60;
+}
+
+.writeReviewButton {
+  @apply inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-scan-500 px-4 py-2.5 font-semibold text-white hover:bg-scan-600;
+  min-height: 44px;
+  white-space: nowrap;
+}
+
+.cancelReviewButton {
+  @apply inline-flex shrink-0 items-center justify-center rounded-lg border border-ink-100 bg-white px-4 py-2.5 font-semibold text-ink-700 hover:border-scan-400 hover:text-scan-600;
+  min-height: 44px;
+  white-space: nowrap;
 }
 
 .noReviews {

@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import { Plus } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useLoadingRouter as useRouter } from "@/components/LoadingProvider";
 import { api } from "@/lib/api";
@@ -166,6 +167,7 @@ export default function ProductPage() {
         await api.uploadReviewImage(review.id, file);
       }
       setPendingFiles([]);
+      setReviewFormOpen(false);
       await reload();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not save review");
@@ -363,31 +365,35 @@ export default function ProductPage() {
         </section>
       )}
 
-      <section className={styles.reviewSection} id="your-review">
-        <div className={styles.reviewSectionHeader}>
-          <div>
-            <h2 className={styles.sectionTitle}>
-              {myReview ? "Edit your review" : "Your review"}
-            </h2>
-            {myReview && (
-              <p className={styles.reviewHint}>One review per product. Updates replace your previous verdict.</p>
-            )}
+      <section className={styles.publicReviews} id="your-review">
+        <div className={styles.reviewsHeader}>
+          <div className={styles.reviewsHeading}>
+            <h2 className={styles.reviewsTitle}>Reviews</h2>
+            <span className={styles.reviewsCount}>{reviews.length} total</span>
           </div>
-          {user && (
+          {reviewFormOpen ? (
             <button
               type="button"
-              className={styles.toggleReviewButton}
-              onClick={() => setReviewFormOpen((value) => !value)}
-              aria-expanded={reviewFormOpen}
+              className={styles.cancelReviewButton}
+              onClick={() => setReviewFormOpen(false)}
             >
-              {reviewFormOpen ? "Hide form" : myReview ? "Edit review" : "Write review"}
-              <ChevronIcon open={reviewFormOpen} />
+              Cancel
             </button>
-          )}
+          ) : !myReview ? (
+            <button
+              type="button"
+              className={styles.writeReviewButton}
+              onClick={() => setReviewFormOpen(true)}
+            >
+              <Plus size={18} aria-hidden="true" />
+              Write review
+            </button>
+          ) : null}
         </div>
-        {!user ? (
+        {reviewFormOpen && !user ? (
           <GuestActionPrompt text="Log in or create an account to add a review." />
-        ) : reviewFormOpen ? (
+        ) : null}
+        {reviewFormOpen && user ? (
           <form onSubmit={onSubmit} className={styles.reviewForm}>
             <div className={styles.selectRow}>
               <label className={styles.fieldLabel}>
@@ -520,14 +526,7 @@ export default function ProductPage() {
             </button>
           </form>
         ) : null}
-      </section>
-
-      <section className={styles.publicReviews}>
-        <div className={styles.reviewsHeader}>
-          <h2 className={styles.reviewsTitle}>Reviews</h2>
-          <span>{reviews.length} total</span>
-        </div>
-        {reviews.length === 0 ? (
+        {reviews.length === 0 && !reviewFormOpen ? (
           <p className={styles.noReviews}>No public reviews yet.</p>
         ) : (
           reviews.map((r) => (
@@ -585,18 +584,6 @@ function EditIcon() {
     <svg viewBox="0 0 24 24" aria-hidden="true" className={styles.buttonIcon}>
       <path d="m4 16.5-.8 4.3 4.3-.8L18.6 8.9 15.1 5.4 4 16.5Z" />
       <path d="m13.8 6.7 3.5 3.5" />
-    </svg>
-  );
-}
-
-function ChevronIcon({ open }: { open: boolean }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-      className={`${styles.buttonIcon} ${open ? styles.chevronOpen : ""}`}
-    >
-      <path d="m6 9 6 6 6-6" />
     </svg>
   );
 }

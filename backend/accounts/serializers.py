@@ -15,6 +15,17 @@ class ProfileSerializer(serializers.ModelSerializer):
         fields = ("display_name", "bio", "avatar", "created_at", "updated_at")
         read_only_fields = ("created_at", "updated_at")
 
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        avatar = instance.avatar
+        if not avatar:
+            data["avatar"] = None
+            return data
+        request = self.context.get("request")
+        url = avatar.url
+        data["avatar"] = request.build_absolute_uri(url) if request else url
+        return data
+
 
 class UserSerializer(serializers.ModelSerializer):
     profile = serializers.SerializerMethodField()
@@ -35,7 +46,7 @@ class UserSerializer(serializers.ModelSerializer):
                 user=obj,
                 defaults={"display_name": obj.username or obj.email.split("@")[0]},
             )
-        return ProfileSerializer(profile).data
+        return ProfileSerializer(profile, context=self.context).data
 
 
 class RegisterSerializer(serializers.ModelSerializer):

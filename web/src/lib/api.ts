@@ -67,7 +67,11 @@ async function request<T>(
   retriedAfterRefresh = false,
 ): Promise<T> {
   const headers = new Headers(options.headers || {});
-  if (!(options.body instanceof FormData) && !headers.has("Content-Type")) {
+  if (
+    options.body != null &&
+    !(options.body instanceof FormData) &&
+    !headers.has("Content-Type")
+  ) {
     headers.set("Content-Type", "application/json");
   }
   if (auth) {
@@ -133,6 +137,12 @@ export const api = {
   },
 
   me: () => request<Me>("/auth/me/", {}, true),
+
+  updateAvatar: (file: File) => {
+    const form = new FormData();
+    form.append("avatar", file);
+    return request<Me>("/auth/me/", { method: "PATCH", body: form }, true);
+  },
 
   getProduct: (id: number, auth = false) =>
     request<Product>(`/products/${id}/?refresh_off=1`, {}, auth, true),
@@ -218,10 +228,19 @@ export const api = {
     ),
 
   addComment: (reviewId: number, body: string) =>
-    request(`/reviews/${reviewId}/comments/`, {
+    request<Comment>(`/reviews/${reviewId}/comments/`, {
       method: "POST",
       body: JSON.stringify({ body }),
     }, true),
+
+  updateComment: (commentId: number, body: string) =>
+    request<Comment>(`/reviews/comments/${commentId}/`, {
+      method: "PATCH",
+      body: JSON.stringify({ body }),
+    }, true),
+
+  deleteComment: (commentId: number) =>
+    request<void>(`/reviews/comments/${commentId}/`, { method: "DELETE" }, true),
 
   reactToComment: (commentId: number, reaction: "like" | "dislike") =>
     request<Comment>(`/reviews/comments/${commentId}/reaction/`, {

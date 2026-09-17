@@ -7,7 +7,7 @@ from rest_framework import generics, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from reviews.models import Review, Verdict, Visibility
+from reviews.models import Review, Verdict, Visibility, visible_comment_prefetch
 from reviews.serializers import ReviewListSerializer
 from .models import Product
 from .serializers import ProductSerializer
@@ -46,7 +46,7 @@ class DiscoverFeedView(APIView):
                     product__merged_into__isnull=True,
                 )
                 .select_related("user", "user__profile", "product")
-                .prefetch_related("images")
+                .prefetch_related("images", visible_comment_prefetch())
                 .order_by("-created_at")[:limit]
             )
             return Response(

@@ -5,10 +5,12 @@ import {
   ArrowUpRight,
   Ellipsis,
   ImageOff,
+  Pencil,
   PencilLine,
   ShoppingCart,
   ThumbsDown,
   ThumbsUp,
+  Trash2,
   UserRound,
 } from "lucide-react";
 import Link from "@/components/LoadingProvider";
@@ -40,6 +42,12 @@ function reactionMap(comments: Comment[]) {
   ) as Record<number, CommentReaction>;
 }
 
+function asCommentList(data: Comment[] | { results?: Comment[] } | undefined | null): Comment[] {
+  if (Array.isArray(data)) return data;
+  if (data && Array.isArray(data.results)) return data.results;
+  return [];
+}
+
 export function ReviewCard({
   review,
   onOpenImage,
@@ -52,7 +60,9 @@ export function ReviewCard({
   productFeed?: boolean;
 }) {
   const { user } = useAuth();
-  const [comments, setComments] = useState<Comment[]>(review.comments || []);
+  const [comments, setComments] = useState<Comment[]>(() =>
+    asCommentList(review.comments),
+  );
   const [commentBody, setCommentBody] = useState("");
   const [commentError, setCommentError] = useState("");
   const [savingComment, setSavingComment] = useState(false);
@@ -62,7 +72,7 @@ export function ReviewCard({
   const [likeCount, setLikeCount] = useState(0);
   const [commentReactions, setCommentReactions] = useState<
     Record<number, CommentReaction>
-  >(() => reactionMap(review.comments || []));
+  >(() => reactionMap(asCommentList(review.comments)));
   const [savingReactionId, setSavingReactionId] = useState<number | null>(null);
   const [reactionError, setReactionError] = useState("");
   const images = review.images?.map((i) => i.image) || [];
@@ -76,19 +86,27 @@ export function ReviewCard({
       60_000;
 
   useEffect(() => {
+    const embedded = asCommentList(review.comments);
+    setComments(embedded);
+    setCommentReactions(reactionMap(embedded));
+
+    let cancelled = false;
     api
       .getReviewComments(review.id)
       .then((data) => {
-        const nextComments = Array.isArray(data) ? data : data.results;
+        if (cancelled) return;
+        const nextComments = asCommentList(data);
+        if (!nextComments.length && embedded.length) return;
         setComments(nextComments);
         setCommentReactions(reactionMap(nextComments));
       })
       .catch(() => {
-        const fallbackComments = review.comments || [];
-        setComments(fallbackComments);
-        setCommentReactions(reactionMap(fallbackComments));
+        /* Keep comments already returned with the review. */
       });
-  }, [review.id, review.comments]);
+    return () => {
+      cancelled = true;
+    };
+  }, [review.id]);
 
   useEffect(() => {
     setVisibleCommentCount(2);
@@ -102,11 +120,19 @@ export function ReviewCard({
     setSavingComment(true);
     setCommentError("");
     try {
-      await api.addComment(review.id, body);
-      const data = await api.getReviewComments(review.id);
-      const nextComments = Array.isArray(data) ? data : data.results;
-      setComments(nextComments);
-      setCommentReactions(reactionMap(nextComments));
+      const created = await api.addComment(review.id, body);
+      try {
+        const data = await api.getReviewComments(review.id);
+        const nextComments = asCommentList(data);
+        setComments(nextComments.length ? nextComments : [...comments, created]);
+        setCommentReactions(
+          reactionMap(nextComments.length ? nextComments : [...comments, created]),
+        );
+      } catch {
+        const nextComments = [...comments, created];
+        setComments(nextComments);
+        setCommentReactions(reactionMap(nextComments));
+      }
       setCommentBody("");
       setShowCommentForm(false);
     } catch (err) {
@@ -144,6 +170,36 @@ export function ReviewCard({
     } finally {
       setSavingReactionId(null);
     }
+  }
+
+  async function onUpdateComment(commentId: number, body: string) {
+    const updatedComment = await api.updateComment(commentId, body);
+    setComments((current) =>
+      current.map((comment) =>
+        comment.id === commentId ? updatedComment : comment,
+      ),
+    );
+    setCommentReactions((current) => ({
+      ...current,
+      [commentId]: {
+        liked: updatedComment.my_reaction === "like",
+        disliked: updatedComment.my_reaction === "dislike",
+        likes: updatedComment.likes,
+        dislikes: updatedComment.dislikes,
+      },
+    }));
+  }
+
+  async function onDeleteComment(commentId: number) {
+    await api.deleteComment(commentId);
+    setComments((current) =>
+      current.filter((comment) => comment.id !== commentId),
+    );
+    setCommentReactions((current) => {
+      const next = { ...current };
+      delete next[commentId];
+      return next;
+    });
   }
 
   return (
@@ -307,6 +363,9 @@ export function ReviewCard({
               comment={comment}
               reaction={commentReactions[comment.id]}
               onReact={onCommentReaction}
+              onUpdate={onUpdateComment}
+              onDelete={onDeleteComment}
+              canManage={Boolean(user && user.username === comment.user.username)}
               disabled={!user || savingReactionId === comment.id}
             />
           ))}
@@ -389,13 +448,23 @@ function CommentItem({
   comment,
   reaction,
   onReact,
+  onUpdate,
+  onDelete,
+  canManage,
   disabled,
 }: {
   comment: Comment;
   reaction?: CommentReaction;
   onReact: (commentId: number, reaction: "like" | "dislike") => void;
+  onUpdate: (commentId: number, body: string) => Promise<void>;
+  onDelete: (commentId: number) => Promise<void>;
+  canManage: boolean;
   disabled: boolean;
 }) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(comment.body);
+  const [saving, setSaving] = useState(false);
+  const [actionError, setActionError] = useState("");
   const current = reaction ?? {
     liked: false,
     disliked: false,
@@ -403,11 +472,74 @@ function CommentItem({
     dislikes: 0,
   };
 
+  async function saveEdit() {
+    const body = draft.trim();
+    if (!body || body === comment.body) {
+      setEditing(false);
+      setDraft(comment.body);
+      return;
+    }
+    setSaving(true);
+    setActionError("");
+    try {
+      await onUpdate(comment.id, body);
+      setEditing(false);
+    } catch (err) {
+      setActionError(
+        err instanceof Error ? err.message : "Could not update comment",
+      );
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function removeComment() {
+    if (!window.confirm("Delete this comment?")) return;
+    setSaving(true);
+    setActionError("");
+    try {
+      await onDelete(comment.id);
+    } catch (err) {
+      setActionError(
+        err instanceof Error ? err.message : "Could not delete comment",
+      );
+      setSaving(false);
+    }
+  }
+
   return (
     <div className={styles.comment}>
       <CommentAvatar comment={comment} />
       <div className={styles.commentContent}>
-        <div className={styles.commentHeader}>
+        {canManage ? (
+          <div className={styles.commentActions}>
+            <button
+              type="button"
+              className={styles.commentActionButton}
+              onClick={() => {
+                setEditing(true);
+                setDraft(comment.body);
+                setActionError("");
+              }}
+              disabled={saving}
+              aria-label="Edit comment"
+              title="Edit comment"
+            >
+              <Pencil size={14} aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              className={styles.commentActionDanger}
+              onClick={removeComment}
+              disabled={saving}
+              aria-label="Delete comment"
+              title="Delete comment"
+            >
+              <Trash2 size={14} aria-hidden="true" />
+            </button>
+          </div>
+        ) : null}
+        <div className={canManage ? styles.commentHeaderOwn : styles.commentHeader}>
           <Link
             href={`/u/${comment.user.username}`}
             className={styles.commentAuthor}
@@ -422,43 +554,83 @@ function CommentItem({
             })}
           </time>
         </div>
-        <div className={styles.commentBodyRow}>
-          <p>{comment.body}</p>
-          <div className={styles.commentReactions}>
+        {editing ? (
+          <form
+            className={styles.commentEditForm}
+            onSubmit={(event) => {
+              event.preventDefault();
+              void saveEdit();
+            }}
+          >
+            <input
+              value={draft}
+              onChange={(event) => setDraft(event.target.value)}
+              className={styles.commentInput}
+              aria-label="Edit comment"
+              disabled={saving}
+            />
             <button
-              type="button"
-              className={
-                current.liked
-                  ? styles.commentReactionActive
-                  : styles.commentReaction
-              }
-              onClick={() => onReact(comment.id, "like")}
-              disabled={disabled}
-              aria-pressed={current.liked}
-              aria-label={`Like comment, ${current.likes} likes`}
-              title={disabled ? "Log in to react" : "Like comment"}
+              type="submit"
+              className={styles.commentButton}
+              disabled={saving || !draft.trim()}
             >
-              <ThumbsUp size={16} aria-hidden="true" />
-              {current.likes}
+              {saving ? "Saving..." : "Save"}
             </button>
             <button
               type="button"
-              className={
-                current.disliked
-                  ? styles.commentReactionDislikeActive
-                  : styles.commentReaction
-              }
-              onClick={() => onReact(comment.id, "dislike")}
-              disabled={disabled}
-              aria-pressed={current.disliked}
-              aria-label={`Dislike comment, ${current.dislikes} dislikes`}
-              title={disabled ? "Log in to react" : "Dislike comment"}
+              className={styles.commentEditCancel}
+              onClick={() => {
+                setEditing(false);
+                setDraft(comment.body);
+                setActionError("");
+              }}
+              disabled={saving}
             >
-              <ThumbsDown size={16} aria-hidden="true" />
-              {current.dislikes}
+              Cancel
             </button>
+          </form>
+        ) : (
+          <div className={styles.commentBodyRow}>
+            <p>{comment.body}</p>
+            <div className={styles.commentReactions}>
+              <button
+                type="button"
+                className={
+                  current.liked
+                    ? styles.commentReactionActive
+                    : styles.commentReaction
+                }
+                onClick={() => onReact(comment.id, "like")}
+                disabled={disabled}
+                aria-pressed={current.liked}
+                aria-label={`Like comment, ${current.likes} likes`}
+                title={disabled ? "Log in to react" : "Like comment"}
+              >
+                <ThumbsUp size={16} aria-hidden="true" />
+                {current.likes}
+              </button>
+              <button
+                type="button"
+                className={
+                  current.disliked
+                    ? styles.commentReactionDislikeActive
+                    : styles.commentReaction
+                }
+                onClick={() => onReact(comment.id, "dislike")}
+                disabled={disabled}
+                aria-pressed={current.disliked}
+                aria-label={`Dislike comment, ${current.dislikes} dislikes`}
+                title={disabled ? "Log in to react" : "Dislike comment"}
+              >
+                <ThumbsDown size={16} aria-hidden="true" />
+                {current.dislikes}
+              </button>
+            </div>
           </div>
-        </div>
+        )}
+        {actionError ? (
+          <p className={styles.commentError}>{actionError}</p>
+        ) : null}
       </div>
     </div>
   );

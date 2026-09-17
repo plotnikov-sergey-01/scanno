@@ -7,11 +7,21 @@
 }
 
 .hero {
-  @apply grid gap-5 rounded-2xl border border-ink-100 bg-white/75 p-5 md:grid-cols-[1fr_auto] md:items-start md:p-7;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 16px 12px;
+  @apply rounded-2xl border border-ink-100 bg-white/75 p-5 md:p-7;
 }
 
 .identity {
+  min-width: 0;
   @apply grid gap-4 sm:grid-cols-[7rem_1fr] sm:items-start;
+}
+
+.avatarWrap {
+  position: relative;
+  width: fit-content;
 }
 
 .avatar {
@@ -20,6 +30,35 @@
 
 .avatarImage {
   @apply h-full w-full object-cover;
+}
+
+.hiddenInput {
+  @apply hidden;
+}
+
+.avatarEdit {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: #00b4ef;
+  color: #fff;
+}
+
+.avatarEdit:hover {
+  background: #0096c7;
+}
+
+.avatarEdit:focus-visible {
+  outline: 2px solid #0096c7;
+  outline-offset: 2px;
 }
 
 .title {
@@ -51,11 +90,14 @@
 }
 
 .profileActions {
-  @apply flex items-start md:items-start;
+  display: flex;
+  flex-shrink: 0;
+  justify-content: flex-end;
 }
 
 .logoutButton {
   @apply rounded-lg border border-ink-100 bg-white px-4 py-2 font-semibold text-ink-900 hover:border-verdict-never hover:text-verdict-never;
+  white-space: nowrap;
 }
 
 .snapshot {

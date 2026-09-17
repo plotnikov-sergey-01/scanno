@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.db.models import Prefetch
 
 from catalog.models import Product
 
@@ -65,6 +66,15 @@ class Comment(models.Model):
 
     def __str__(self):
         return f"Comment {self.pk} on review {self.review_id}"
+
+
+def visible_comment_prefetch():
+    return Prefetch(
+        "comments",
+        queryset=Comment.objects.filter(is_hidden=False)
+        .select_related("user", "user__profile")
+        .prefetch_related("reactions"),
+    )
 
 
 class CommentReaction(models.Model):

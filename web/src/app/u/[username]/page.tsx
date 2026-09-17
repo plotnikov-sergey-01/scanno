@@ -1,24 +1,28 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Camera } from "lucide-react";
 import { useParams } from "next/navigation";
 import Link from "@/components/LoadingProvider";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { ReviewCard } from "@/components/ReviewCard";
-import { LoadingLabel } from "@/components/Spinner";
+import { ImageCropModal } from "@/components/ImageCropModal";
+import { LoadingLabel, Spinner } from "@/components/Spinner";
 import type { PublicUser, Review } from "@/lib/types";
 import styles from "./page.module.css";
 
 export default function UserProfilePage() {
   const params = useParams();
   const username = String(params.username);
-  const { user, logout } = useAuth();
+  const { user, logout, refresh } = useAuth();
   const [profile, setProfile] = useState<PublicUser | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [error, setError] = useState("");
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [cropFile, setCropFile] = useState<File | null>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   useEffect(() => {
     Promise.all([api.getUser(username), api.getUserReviews(username)])
@@ -48,17 +52,56 @@ export default function UserProfilePage() {
     }
   }
 
+  async function uploadAvatarBlob(blob: Blob) {
+    setUploadingAvatar(true);
+    setError("");
+    setCropFile(null);
+    try {
+      const file = new File([blob], "avatar.jpg", { type: blob.type || "image/jpeg" });
+      const me = await api.updateAvatar(file);
+      const nextAvatar = me.profile?.avatar || null;
+      setProfile((current) => (current ? { ...current, avatar: nextAvatar } : current));
+      await refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not update avatar");
+    } finally {
+      setUploadingAvatar(false);
+    }
+  }
+
   return (
     <div className={styles.page}>
       <section className={styles.hero}>
         <div className={styles.identity}>
-          <div className={styles.avatar}>
-            {profile.avatar ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={profile.avatar} alt="" className={styles.avatarImage} />
-            ) : (
-              <span>{getInitial(profile)}</span>
-            )}
+          <div className={styles.avatarWrap}>
+            <div className={styles.avatar}>
+              {profile.avatar ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={profile.avatar} alt="" className={styles.avatarImage} />
+              ) : (
+                <span>{getInitial(profile)}</span>
+              )}
+            </div>
+            {isOwnProfile ? (
+              <label className={styles.avatarEdit} aria-label="Change avatar">
+                <input
+                  type="file"
+                  accept="image/*"
+                  className={styles.hiddenInput}
+                  disabled={uploadingAvatar}
+                  onChange={(event) => {
+                    const file = event.target.files?.[0];
+                    event.target.value = "";
+                    if (file) setCropFile(file);
+                  }}
+                />
+                {uploadingAvatar ? (
+                  <Spinner size="sm" onDark />
+                ) : (
+                  <Camera size={16} aria-hidden="true" />
+                )}
+              </label>
+            ) : null}
           </div>
           <div>
             <h1 className={styles.title}>{profile.display_name || profile.username}</h1>
@@ -193,7 +236,7 @@ export default function UserProfilePage() {
                             onClick={() => onDeleteReview(r.id)}
                             disabled={deletingId === r.id}
                           >
-                            {deletingId === r.id ? "Deleting..." : "Видалити"}
+                            {deletingId === r.id ? "Deleting..." : "Delete"}
                           </button>
                         </div>
                       )}
@@ -206,6 +249,15 @@ export default function UserProfilePage() {
           ))
         )}
       </section>
+      {cropFile ? (
+        <ImageCropModal
+          file={cropFile}
+          onCancel={() => setCropFile(null)}
+          onConfirm={(blob) => {
+            void uploadAvatarBlob(blob);
+          }}
+        />
+      ) : null}
     </div>
   );
 }

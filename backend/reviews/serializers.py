@@ -56,6 +56,12 @@ class CommentSerializer(serializers.ModelSerializer):
             .first()
         )
 
+    def validate_body(self, value):
+        value = (value or "").strip()
+        if not value:
+            raise serializers.ValidationError("Comment cannot be empty.")
+        return value
+
 
 class ReviewListSerializer(serializers.ModelSerializer):
     user = PublicProfileSerializer(read_only=True)
@@ -65,6 +71,7 @@ class ReviewListSerializer(serializers.ModelSerializer):
     product_brand = serializers.CharField(source="product.brand", read_only=True)
     product_image_url = serializers.SerializerMethodField()
     comment_count = serializers.SerializerMethodField()
+    comments = serializers.SerializerMethodField()
 
     class Meta:
         model = Review
@@ -86,26 +93,31 @@ class ReviewListSerializer(serializers.ModelSerializer):
             "tasted_at",
             "images",
             "comment_count",
+            "comments",
             "created_at",
             "updated_at",
         )
 
+    def _visible_comments(self, obj):
+        prefetched = getattr(obj, "_prefetched_objects_cache", {}).get("comments")
+        if prefetched is not None:
+            return [comment for comment in prefetched if not comment.is_hidden]
+        return list(
+            obj.comments.filter(is_hidden=False).select_related("user", "user__profile")
+        )
+
     def get_comment_count(self, obj):
-        return obj.comments.filter(is_hidden=False).count()
+        return len(self._visible_comments(obj))
+
+    def get_comments(self, obj):
+        return CommentSerializer(self._visible_comments(obj), many=True, context=self.context).data
 
     def get_product_image_url(self, obj) -> str:
         return obj.product.resolve_image_url(self.context.get("request"))
 
 
 class ReviewDetailSerializer(ReviewListSerializer):
-    comments = serializers.SerializerMethodField()
-
-    class Meta(ReviewListSerializer.Meta):
-        fields = ReviewListSerializer.Meta.fields + ("comments",)
-
-    def get_comments(self, obj):
-        qs = obj.comments.filter(is_hidden=False).select_related("user", "user__profile")
-        return CommentSerializer(qs, many=True, context=self.context).data
+    pass
 
 
 class ReviewCreateUpdateSerializer(serializers.ModelSerializer):

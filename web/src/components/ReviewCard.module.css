@@ -123,15 +123,57 @@
 }
 
 .commentContent {
+  position: relative;
   min-width: 0;
 }
 
-.commentHeader {
+.commentActions {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.commentActionButton,
+.commentActionDanger {
+  display: flex;
+  width: 28px;
+  height: 28px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  color: #68758a;
+}
+
+.commentActionButton:hover {
+  background: #f4f7fb;
+  color: #0f1b2d;
+}
+
+.commentActionDanger:hover {
+  background: #fce8e5;
+  color: #aa3428;
+}
+
+.commentActionButton:disabled,
+.commentActionDanger:disabled {
+  opacity: 0.55;
+}
+
+.commentHeader,
+.commentHeaderOwn {
   display: flex;
   min-width: 0;
   align-items: baseline;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+.commentHeaderOwn {
+  padding-right: 56px;
 }
 
 .commentDate {
@@ -164,6 +206,18 @@
 
 .commentForm {
   @apply flex flex-col gap-2 sm:flex-row sm:items-start;
+}
+
+.commentEditForm {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.commentEditCancel {
+  @apply rounded-lg px-3 py-2 text-sm font-semibold text-ink-700 hover:bg-ink-100;
 }
 
 .commentInput {
