@@ -182,7 +182,7 @@ export default function HomePage() {
               Your product memory
             </p>
             <h1>
-              Do not buy the same <em>disappointment</em> twice.
+              Never buy <em>disappointment</em> twice.
             </h1>
             <p className={styles.heroDescription}>
               Scan a barcode, leave a simple verdict, and remember exactly what belongs in your
