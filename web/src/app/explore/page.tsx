@@ -59,7 +59,7 @@ export default function ExplorePage() {
   }, [feed]);
 
   return (
-    <div className={styles.page} data-explore-page>
+    <div className={styles.page}>
       <nav className={styles.feedFilters} aria-label="Explore feeds">
         {FEEDS.map((f) => (
           <button

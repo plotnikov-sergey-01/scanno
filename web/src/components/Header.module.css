@@ -80,14 +80,6 @@
   outline-offset: 2px;
 }
 
-.exploreHeader {
-  background: #ffffffed;
-}
-
-.exploreHeader .inner {
-  max-width: 1440px;
-}
-
 @media (min-width: 640px) {
   .inner {
     grid-template-columns: minmax(0, 1fr) auto auto;
@@ -109,20 +101,5 @@
   .navLink {
     padding: 8px;
     height: 100%;
-  }
-}
-
-@media (min-width: 1024px) {
-  .exploreHeader .brand {
-    font-size: 32px;
-  }
-
-  .exploreHeader .inner {
-    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-  }
-
-  .exploreHeader .nav {
-    gap: 24px;
-    font-size: 16px;
   }
 }

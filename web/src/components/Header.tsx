@@ -12,9 +12,7 @@ export function Header() {
   const pathname = usePathname();
 
   return (
-    <header
-      className={`${styles.header} ${pathname === "/explore" ? styles.exploreHeader : ""}`}
-    >
+    <header className={styles.header}>
       <div className={styles.inner}>
         <Link href="/" className={styles.brand}>
           Scanno
