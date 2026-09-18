@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
 import { LoadingProvider } from "@/components/LoadingProvider";
 import { AuthProvider } from "@/lib/auth";
 import { AnalyticsProvider } from "@/components/AnalyticsProvider";
@@ -41,8 +42,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <AuthProvider>
             <ServiceWorkerRegister />
             <LoadingProvider>
-              <Header />
-              <main className={styles.main}>{children}</main>
+              <div className={styles.shell}>
+                <Header />
+                <main className={styles.main}>{children}</main>
+                <Footer />
+              </div>
             </LoadingProvider>
           </AuthProvider>
         </AnalyticsProvider>

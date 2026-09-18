@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "@/components/LoadingProvider";
+import { ScanLink } from "@/components/ScanLink";
 import { useAuth } from "@/lib/auth";
 import { api } from "@/lib/api";
 import { ProductCard } from "@/components/ProductCard";
@@ -189,10 +190,10 @@ export default function HomePage() {
               basket next time.
             </p>
             <div className={styles.heroActions}>
-              <Link href="/search" className={styles.primaryAction}>
+              <ScanLink className={styles.primaryAction}>
                 <Camera aria-hidden="true" />
                 Scan a product
-              </Link>
+              </ScanLink>
               <Link href="/search" className={styles.secondaryAction}>
                 <Search aria-hidden="true" />
                 Search by name
@@ -385,46 +386,13 @@ export default function HomePage() {
             <p className={styles.sectionKicker}>Your next shop</p>
             <h2>Make your basket a little more certain.</h2>
           </div>
-          <Link href="/search" className={styles.primaryAction}>
+          <ScanLink className={styles.primaryAction}>
             <Camera aria-hidden="true" />
             Scan your first product
-          </Link>
+          </ScanLink>
         </div>
       </section>
 
-      <footer className={styles.footer}>
-        <div className={`${styles.pageWidth} ${styles.footerInner}`}>
-          <div className={styles.footerBrand}>
-            <Link href="/" className={styles.footerLogo}>
-              Scanno<span aria-hidden="true" />
-            </Link>
-            <p>Remember what belongs in your basket.</p>
-          </div>
-          <div className={styles.footerLinks}>
-            <div>
-              <h3>Product</h3>
-              <Link href="/search">Search and scan</Link>
-              <Link href="/explore">Explore verdicts</Link>
-              <Link href={diaryHref}>Your diary</Link>
-            </div>
-            <div>
-              <h3>Account</h3>
-              <Link href="/login">Log in</Link>
-              <Link href="/register">Create account</Link>
-            </div>
-            <div>
-              <h3>Contact</h3>
-              <a href="mailto:hello@scanno.app">hello@scanno.app</a>
-              <a href="mailto:support@scanno.app">Support</a>
-              <a href="mailto:hello@scanno.app?subject=Product%20report">Report a product</a>
-            </div>
-          </div>
-          <div className={styles.footerBottom}>
-            <span>Copyright {new Date().getFullYear()} Scanno</span>
-            <span>Built for better repeat purchases.</span>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

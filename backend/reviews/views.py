@@ -6,7 +6,7 @@ from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 
 from catalog.models import Product
-from .models import Comment, CommentReaction, Review, ReviewImage, Visibility, visible_comment_prefetch
+from .models import Comment, CommentReaction, Review, ReviewImage, ReviewLike, Visibility, visible_comment_prefetch
 from .serializers import (
     CommentSerializer,
     ReviewCreateUpdateSerializer,
@@ -35,7 +35,7 @@ class ProductReviewListCreateView(generics.ListCreateAPIView):
         qs = (
             Review.objects.filter(product=product, is_hidden=False)
             .select_related("user", "user__profile", "product")
-            .prefetch_related("images", visible_comment_prefetch())
+            .prefetch_related("images", "likes", visible_comment_prefetch())
         )
         user = self.request.user
         if user.is_authenticated:
@@ -72,7 +72,7 @@ class MyReviewsView(generics.ListAPIView):
         qs = (
             Review.objects.filter(user=self.request.user, is_hidden=False)
             .select_related("user", "user__profile", "product")
-            .prefetch_related("images", visible_comment_prefetch())
+            .prefetch_related("images", "likes", visible_comment_prefetch())
         )
         verdict = self.request.query_params.get("verdict")
         if verdict:
@@ -86,7 +86,7 @@ class MyReviewsView(generics.ListAPIView):
 class ReviewDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
     queryset = Review.objects.select_related("user", "user__profile", "product").prefetch_related(
-        "images", visible_comment_prefetch()
+        "images", "likes", visible_comment_prefetch()
     )
 
     def get_serializer_class(self):
@@ -212,3 +212,31 @@ class CommentReactionView(views.APIView):
             )
 
         return Response(CommentSerializer(comment, context={"request": request}).data)
+
+
+class ReviewLikeView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, pk):
+        review = get_object_or_404(
+            Review.objects.select_related("user"),
+            pk=pk,
+            is_hidden=False,
+        )
+        if review.visibility == Visibility.PRIVATE and review.user_id != request.user.id:
+            raise PermissionDenied("This review is private.")
+
+        existing = ReviewLike.objects.filter(review=review, user=request.user).first()
+        if existing:
+            existing.delete()
+            liked = False
+        else:
+            ReviewLike.objects.create(review=review, user=request.user)
+            liked = True
+
+        return Response(
+            {
+                "liked": liked,
+                "like_count": review.likes.count(),
+            }
+        )

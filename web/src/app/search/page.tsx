@@ -140,6 +140,14 @@ export default function SearchPage() {
   }
 
   useEffect(() => {
+    const url = new URL(window.location.href);
+    if (url.searchParams.get("scan") !== "1") return;
+    url.searchParams.delete("scan");
+    window.history.replaceState(window.history.state, "", url.pathname + url.search + url.hash);
+    setScannerOpen(true);
+  }, []);
+
+  useEffect(() => {
     if (!scannerOpen || !videoRef.current) return;
 
     let cancelled = false;
@@ -185,13 +193,20 @@ export default function SearchPage() {
           },
         );
 
+        if (cancelled) {
+          controls.stop();
+          return;
+        }
         scannerControlRef.current = controls;
         setScannerStatus("Point your camera at a barcode");
       } catch (err) {
-        setScannerError(
-          err instanceof Error ? err.message : "Camera could not be started.",
-        );
-        setScannerStatus("Scanner unavailable");
+        if (cancelled) return;
+        stopScanner();
+        setScannerOpen(false);
+        setNotice({
+          kind: "error",
+          text: "Camera unavailable. Please allow camera access or search by name or barcode.",
+        });
       }
     }
     startScanner();

@@ -4,7 +4,7 @@ import Link from "@/components/LoadingProvider";
 import { useAuth } from "@/lib/auth";
 import { Spinner } from "@/components/Spinner";
 import { usePathname } from "next/navigation";
-import { BookOpen, Compass, Search } from "lucide-react";
+import { BookOpen, Camera, Compass, Search } from "lucide-react";
 import styles from "./Header.module.css";
 
 export function Header() {
@@ -46,6 +46,11 @@ export function Header() {
             </Link>
           )}
         </nav>
+        {pathname !== "/" && pathname !== "/search" && (
+            <Link href="/search?scan=1" className={styles.scanButton} aria-label="Scan a product" title="Scan a product">
+              <Camera size={20} aria-hidden="true" />
+            </Link>
+        )}
         <div className={styles.account}>
           {loading ? (
             <Spinner size="sm" />

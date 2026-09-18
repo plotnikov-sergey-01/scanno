@@ -1,7 +1,19 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import { Plus } from "lucide-react";
+import {
+  ArrowRight,
+  Camera,
+  ChevronDown,
+  Globe2,
+  Lock,
+  Minus,
+  Plus,
+  ShoppingBag,
+  Star,
+  ThumbsDown,
+  ThumbsUp,
+} from "lucide-react";
 import { useParams } from "next/navigation";
 import { useLoadingRouter as useRouter } from "@/components/LoadingProvider";
 import { api } from "@/lib/api";
@@ -16,6 +28,12 @@ import type { Product, Review } from "@/lib/types";
 import styles from "./page.module.css";
 
 const DEFAULT_PRICE_CURRENCY = "UAH";
+const RATING_LABELS = ["Not for me", "Could be better", "It's okay", "Really good", "Loved it"];
+const VERDICT_OPTIONS = [
+  { value: "buy_again", label: "Buy again", icon: ThumbsUp },
+  { value: "neutral", label: "Neutral", icon: Minus },
+  { value: "never_again", label: "Never again", icon: ThumbsDown },
+];
 
 export default function ProductPage() {
   const params = useParams();
@@ -395,106 +413,75 @@ export default function ProductPage() {
         ) : null}
         {reviewFormOpen && user ? (
           <form onSubmit={onSubmit} className={styles.reviewForm}>
-            <div className={styles.selectRow}>
-              <label className={styles.fieldLabel}>
-                Rating
-                <select
-                  value={form.rating}
-                  onChange={(e) => setForm({ ...form, rating: Number(e.target.value) })}
-                  className={styles.inlineSelect}
-                >
+            <div className={styles.compactReviewTop}>
+              <div className={styles.ratingControl}>
+                <span className={styles.fieldLabel} id="review-rating-label">Your rating</span>
+                <div className={styles.ratingButtons} role="radiogroup" aria-labelledby="review-rating-label">
                   {[1, 2, 3, 4, 5].map((n) => (
-                    <option key={n} value={n}>
-                      {n}
-                    </option>
+                    <button
+                      key={n}
+                      type="button"
+                      className={`${styles.ratingButton} ${n <= form.rating ? styles.ratingButtonActive : ""}`}
+                      aria-label={`${n} ${n === 1 ? "star" : "stars"}`}
+                      aria-checked={n === form.rating}
+                      role="radio"
+                      onClick={() => setForm({ ...form, rating: n })}
+                    >
+                      <Star size={26} aria-hidden="true" />
+                    </button>
                   ))}
-                </select>
-              </label>
-              <label className={styles.fieldLabel}>
-                Verdict
-                <select
-                  value={form.verdict}
-                  onChange={(e) => setForm({ ...form, verdict: e.target.value })}
-                  className={styles.inlineSelect}
-                >
-                  <option value="buy_again">Buy again</option>
-                  <option value="never_again">Never again</option>
-                  <option value="neutral">Neutral</option>
-                </select>
-              </label>
-              <label className={styles.fieldLabel}>
-                Visibility
-                <select
-                  value={form.visibility}
-                  onChange={(e) => setForm({ ...form, visibility: e.target.value })}
-                  className={styles.inlineSelect}
-                >
-                  <option value="public">Public</option>
-                  <option value="private">Private</option>
-                </select>
-              </label>
+                </div>
+                <p className={styles.ratingCaption}>
+                  <strong>{form.rating}/5</strong> · {RATING_LABELS[form.rating - 1]}
+                </p>
+              </div>
+              <fieldset className={styles.verdictField}>
+                <legend className={styles.fieldLabel}>Would you buy it again?</legend>
+                <div className={styles.verdictOptions}>
+                  {VERDICT_OPTIONS.map(({ value, label, icon: Icon }) => (
+                    <button
+                      key={value}
+                      type="button"
+                      className={`${styles.verdictOption} ${form.verdict === value ? styles.verdictOptionActive : ""}`}
+                      data-verdict={value}
+                      aria-pressed={form.verdict === value}
+                      onClick={() => setForm({ ...form, verdict: value })}
+                    >
+                      <Icon size={17} aria-hidden="true" />
+                      <span>{label}</span>
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
             </div>
-            <textarea
-              value={form.body}
-              onChange={(e) => setForm({ ...form, body: e.target.value })}
-              placeholder="How did it taste? Would you buy it again?"
-              rows={4}
-              required
-              minLength={3}
-              className={styles.reviewTextarea}
-            />
-            <div className={styles.locationGrid}>
-              <input
-                value={form.store_name}
-                onChange={(e) => setForm({ ...form, store_name: e.target.value })}
-                placeholder="Store"
-                className={styles.locationInput}
+            <div className={styles.writingSurface}>
+              <textarea
+                value={form.body}
+                onChange={(e) => setForm({ ...form, body: e.target.value })}
+                placeholder="How did it taste? Would you buy it again?"
+                rows={5}
+                required
+                minLength={3}
+                className={styles.reviewTextarea}
+                aria-label="Your experience"
               />
-              <input
-                value={form.city}
-                onChange={(e) => setForm({ ...form, city: e.target.value })}
-                placeholder="City"
-                className={styles.locationInput}
-              />
-            </div>
-            <div className={styles.priceRow}>
-              <input
-                value={form.price_paid}
-                onChange={(e) => setForm({ ...form, price_paid: e.target.value })}
-                placeholder="Price paid"
-                inputMode="decimal"
-                className={styles.priceInput}
-              />
-              <select
-                value={form.price_currency}
-                onChange={(e) => setForm({ ...form, price_currency: e.target.value })}
-                className={styles.currencySelect}
-              >
-                <option value="UAH">UAH</option>
-                <option value="EUR">EUR</option>
-                <option value="USD">USD</option>
-                <option value="KZT">KZT</option>
-                <option value="GBP">GBP</option>
-              </select>
-            </div>
-            <p className={styles.priceHint}>
-              Price is what you paid (optional). Better than one global price for every country.
-            </p>
-            <div>
-              <label className={styles.fileLabel}>
-                Review photos (cropped before upload)
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  capture="environment"
-                  className={styles.fileInput}
-                  onChange={(e) => onPickReviewPhotos(e.target.files)}
-                />
-              </label>
-              {pendingFiles.length > 0 && (
-                <p className={styles.photoReady}>{pendingFiles.length} photo(s) ready</p>
-              )}
+              <div className={styles.writingToolbar}>
+                <label className={styles.photoButton}>
+                  <Camera size={17} aria-hidden="true" />
+                  Add photos
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    capture="environment"
+                    className={styles.fileInput}
+                    onChange={(e) => onPickReviewPhotos(e.target.files)}
+                  />
+                </label>
+                <span className={styles.photoNote}>
+                  {pendingFiles.length > 0 ? `${pendingFiles.length} photo(s) ready` : "Optional · up to 5"}
+                </span>
+              </div>
               {myReview?.images?.length ? (
                 <div className={styles.reviewImages}>
                   {myReview.images.map((img, idx) => (
@@ -515,15 +502,81 @@ export default function ProductPage() {
                 </div>
               ) : null}
             </div>
+            <details className={styles.purchaseDisclosure}>
+              <summary>
+                <span>
+                  <ShoppingBag size={17} aria-hidden="true" />
+                  Add purchase details
+                  <small>Optional</small>
+                </span>
+                <ChevronDown size={17} aria-hidden="true" className={styles.purchaseChevron} />
+              </summary>
+              <div className={styles.purchaseGrid}>
+                <input
+                  value={form.store_name}
+                  onChange={(e) => setForm({ ...form, store_name: e.target.value })}
+                  placeholder="Store"
+                  className={styles.locationInput}
+                />
+                <input
+                  value={form.city}
+                  onChange={(e) => setForm({ ...form, city: e.target.value })}
+                  placeholder="City"
+                  className={styles.locationInput}
+                />
+                <div className={styles.priceControl}>
+                  <input
+                    value={form.price_paid}
+                    onChange={(e) => setForm({ ...form, price_paid: e.target.value })}
+                    placeholder="Price paid"
+                    inputMode="decimal"
+                    className={styles.priceInput}
+                  />
+                  <select
+                    value={form.price_currency}
+                    onChange={(e) => setForm({ ...form, price_currency: e.target.value })}
+                    className={styles.currencySelect}
+                    aria-label="Currency"
+                  >
+                    <option value="UAH">UAH</option>
+                    <option value="EUR">EUR</option>
+                    <option value="USD">USD</option>
+                    <option value="KZT">KZT</option>
+                    <option value="GBP">GBP</option>
+                  </select>
+                </div>
+              </div>
+            </details>
             {error && <p className={styles.formError}>{error}</p>}
-            <button
-              type="submit"
-              disabled={saving}
-              className={styles.submitButton}
-            >
-              {saving && <Spinner size="sm" onDark />}
-              {saving ? "Saving…" : myReview ? "Update review" : "Save review"}
-            </button>
+            <div className={styles.reviewFormFooter}>
+              <label className={styles.visibilityControl}>
+                {form.visibility === "private" ? (
+                  <Lock size={17} aria-hidden="true" />
+                ) : (
+                  <Globe2 size={17} aria-hidden="true" />
+                )}
+                <span>
+                  <span className={styles.visibilityLabel}>Who can see this?</span>
+                  <select
+                    value={form.visibility}
+                    onChange={(e) => setForm({ ...form, visibility: e.target.value })}
+                    className={styles.visibilitySelect}
+                  >
+                    <option value="public">Public</option>
+                    <option value="private">Private</option>
+                  </select>
+                </span>
+              </label>
+              <button
+                type="submit"
+                disabled={saving}
+                className={styles.submitButton}
+              >
+                {saving && <Spinner size="sm" onDark />}
+                {saving ? "Saving…" : myReview ? "Update review" : "Save review"}
+                {!saving && <ArrowRight size={17} aria-hidden="true" />}
+              </button>
+            </div>
           </form>
         ) : null}
         {reviews.length === 0 && !reviewFormOpen ? (

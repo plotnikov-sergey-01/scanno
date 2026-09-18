@@ -4,19 +4,22 @@
   letter-spacing: 0;
 }
 
-.title {
-  @apply font-display font-bold;
-  font-size: 32px;
-  line-height: 1.2;
-  overflow-wrap: anywhere;
-}
-
 .headingRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
   margin: 0;
+  min-width: 0;
+}
+
+.title {
+  @apply font-display font-bold;
+  min-width: 0;
+  flex: 1 1 auto;
+  font-size: 32px;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
 }
 
 .feedFilters {
@@ -98,6 +101,11 @@
 
 .reviewMeta {
   @apply text-xs text-ink-700/60;
+}
+
+.showMoreButton {
+  @apply mt-4 inline-flex w-full items-center justify-center rounded-lg border border-ink-100 bg-white px-4 py-3 font-semibold text-ink-900 hover:border-scan-400 hover:text-scan-600 disabled:cursor-not-allowed disabled:opacity-40;
+  min-height: 44px;
 }
 
 .page :is(button, input, select):focus-visible {

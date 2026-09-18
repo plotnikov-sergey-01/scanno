@@ -1,3 +1,13 @@
 .main {
   @apply mx-auto max-w-5xl px-4 py-8;
+  width: 100%;
+  flex: 1;
+  min-width: 0;
+}
+
+.shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
 }

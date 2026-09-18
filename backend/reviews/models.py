@@ -102,3 +102,24 @@ class CommentReaction(models.Model):
 
     def __str__(self):
         return f"{self.reaction} by {self.user_id} on comment {self.comment_id}"
+
+
+class ReviewLike(models.Model):
+    review = models.ForeignKey(Review, on_delete=models.CASCADE, related_name="likes")
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="review_likes",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["review", "user"],
+                name="unique_review_like_per_user",
+            ),
+        ]
+
+    def __str__(self):
+        return f"Like by {self.user_id} on review {self.review_id}"

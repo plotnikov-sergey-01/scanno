@@ -18,6 +18,10 @@ const FEEDS = [
   { id: "most_discussed", label: "Most discussed (7d)" },
 ] as const;
 
+const SHOW_MORE_FEEDS = new Set(["top_rated", "most_hated", "most_discussed"]);
+const MOBILE_PAGE_SIZE = 5;
+const MAX_FEED_ITEMS = 20;
+
 export default function ExplorePage() {
   const [feed, setFeed] = useState<string>("recent_reviews");
   const [products, setProducts] = useState<Product[]>([]);
@@ -25,24 +29,35 @@ export default function ExplorePage() {
   const [layout, setLayout] = useState<"list" | "grid">("grid");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [visibleCount, setVisibleCount] = useState(MOBILE_PAGE_SIZE);
+  const [isMobile, setIsMobile] = useState(false);
   const [lightbox, setLightbox] = useState<{
     images: string[];
     index: number;
   } | null>(null);
 
   useEffect(() => {
+    const media = window.matchMedia("(max-width: 767px)");
+    const sync = () => setIsMobile(media.matches);
+    sync();
+    media.addEventListener("change", sync);
+    return () => media.removeEventListener("change", sync);
+  }, []);
+
+  useEffect(() => {
     let active = true;
     setLoading(true);
     setError("");
+    setVisibleCount(MOBILE_PAGE_SIZE);
     api
-      .discover(feed, { days: 7, limit: 20 })
+      .discover(feed, { days: 7, limit: MAX_FEED_ITEMS })
       .then((data) => {
         if (!active) return;
         if (feed === "recent_reviews") {
           setReviews(data.results as Review[]);
           setProducts([]);
         } else {
-          setProducts(data.results as Product[]);
+          setProducts((data.results as Product[]).slice(0, MAX_FEED_ITEMS));
           setReviews([]);
         }
       })
@@ -57,6 +72,15 @@ export default function ExplorePage() {
       active = false;
     };
   }, [feed]);
+
+  const paginateFeed = SHOW_MORE_FEEDS.has(feed);
+  const visibleProducts =
+    paginateFeed && isMobile ? products.slice(0, visibleCount) : products;
+  const canShowMore =
+    paginateFeed &&
+    isMobile &&
+    visibleCount < products.length &&
+    visibleCount < MAX_FEED_ITEMS;
 
   return (
     <div className={styles.page}>
@@ -148,13 +172,18 @@ export default function ExplorePage() {
               Nothing in this feed yet — add a few reviews.
             </p>
           ) : layout === "grid" ? (
-            <ProductCardGrid products={products} />
+            <ProductCardGrid products={visibleProducts} />
           ) : (
-            products.map((p) => (
+            visibleProducts.map((p) => (
               <div key={p.id}>
                 {typeof p.period_never_again === "number" && (
                   <p className={styles.neverMeta}>
                     {p.period_never_again} never-again this week
+                  </p>
+                )}
+                {typeof p.period_comment_count === "number" && (
+                  <p className={styles.reviewMeta}>
+                    {p.period_comment_count} comments this week
                   </p>
                 )}
                 {typeof p.period_review_count === "number" && (
@@ -166,6 +195,24 @@ export default function ExplorePage() {
               </div>
             ))
           )}
+          {paginateFeed && isMobile ? (
+            <button
+              type="button"
+              className={styles.showMoreButton}
+              onClick={() =>
+                setVisibleCount((count) =>
+                  Math.min(
+                    count + MOBILE_PAGE_SIZE,
+                    MAX_FEED_ITEMS,
+                    products.length,
+                  ),
+                )
+              }
+              disabled={!canShowMore}
+            >
+              Show more
+            </button>
+          ) : null}
         </div>
       )}
 

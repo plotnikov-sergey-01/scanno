@@ -68,8 +68,10 @@ export function ReviewCard({
   const [savingComment, setSavingComment] = useState(false);
   const [showCommentForm, setShowCommentForm] = useState(false);
   const [visibleCommentCount, setVisibleCommentCount] = useState(2);
-  const [liked, setLiked] = useState(false);
-  const [likeCount, setLikeCount] = useState(0);
+  const [liked, setLiked] = useState(Boolean(review.liked));
+  const [likeCount, setLikeCount] = useState(review.like_count || 0);
+  const [savingLike, setSavingLike] = useState(false);
+  const [likeError, setLikeError] = useState("");
   const [commentReactions, setCommentReactions] = useState<
     Record<number, CommentReaction>
   >(() => reactionMap(asCommentList(review.comments)));
@@ -107,6 +109,11 @@ export function ReviewCard({
       cancelled = true;
     };
   }, [review.id]);
+
+  useEffect(() => {
+    setLiked(Boolean(review.liked));
+    setLikeCount(review.like_count || 0);
+  }, [review.id, review.liked, review.like_count]);
 
   useEffect(() => {
     setVisibleCommentCount(2);
@@ -200,6 +207,24 @@ export function ReviewCard({
       delete next[commentId];
       return next;
     });
+  }
+
+  async function onToggleLike() {
+    if (!user) {
+      setLikeError("Log in to like this review.");
+      return;
+    }
+    setSavingLike(true);
+    setLikeError("");
+    try {
+      const result = await api.likeReview(review.id);
+      setLiked(result.liked);
+      setLikeCount(result.like_count);
+    } catch (err) {
+      setLikeError(err instanceof Error ? err.message : "Could not save like");
+    } finally {
+      setSavingLike(false);
+    }
   }
 
   return (
@@ -400,16 +425,18 @@ export function ReviewCard({
               type="button"
               className={liked ? styles.likedButton : styles.likeButton}
               onClick={() => {
-                setLiked((value) => !value);
-                setLikeCount((count) => count + (liked ? -1 : 1));
+                void onToggleLike();
               }}
+              disabled={savingLike}
               aria-pressed={liked}
               aria-label={`${liked ? "Unlike" : "Like"} review, ${likeCount} likes`}
+              title={user ? "Like review" : "Log in to like"}
             >
               <HeartIcon filled={liked} />
               {likeCount}
             </button>
           </div>
+          {likeError ? <p className={styles.commentError}>{likeError}</p> : null}
 
           {user && showCommentForm ? (
             <form

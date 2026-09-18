@@ -1,6 +1,6 @@
 from datetime import timedelta
 
-from django.db.models import Count, F, FloatField, Max, Q
+from django.db.models import Count, F, FloatField, Q
 from django.db.models.functions import Cast
 from django.utils import timezone
 from rest_framework import generics, permissions
@@ -46,7 +46,7 @@ class DiscoverFeedView(APIView):
                     product__merged_into__isnull=True,
                 )
                 .select_related("user", "user__profile", "product")
-                .prefetch_related("images", visible_comment_prefetch())
+                .prefetch_related("images", "likes", visible_comment_prefetch())
                 .order_by("-created_at")[:limit]
             )
             return Response(
@@ -56,26 +56,32 @@ class DiscoverFeedView(APIView):
                 }
             )
 
+        if feed in {"top_rated", "most_hated", "most_discussed"}:
+            limit = min(limit, 20)
+
         if feed == "top_rated":
             qs = (
-                Product.objects.filter(
-                    merged_into__isnull=True,
-                    stats__review_count__gte=1,
-                )
+                Product.objects.filter(merged_into__isnull=True)
                 .select_related("stats")
                 .annotate(
-                    period_reviews=Count(
+                    period_positive=Count(
                         "reviews",
                         filter=Q(
                             reviews__visibility=Visibility.PUBLIC,
                             reviews__is_hidden=False,
                             reviews__created_at__gte=since,
+                        )
+                        & (
+                            Q(reviews__verdict=Verdict.BUY_AGAIN)
+                            | Q(reviews__rating__gte=4)
                         ),
                         distinct=True,
                     )
                 )
-                .filter(period_reviews__gte=1)
-                .order_by("-stats__avg_rating", "-stats__review_count")[:limit]
+                .filter(period_positive__gte=1)
+                .order_by("-period_positive", "-stats__avg_rating", "-stats__review_count")[
+                    :limit
+                ]
             )
             return Response(
                 {
@@ -87,25 +93,32 @@ class DiscoverFeedView(APIView):
 
         if feed == "most_hated":
             qs = (
-                Product.objects.filter(merged_into__isnull=True, stats__review_count__gte=1)
+                Product.objects.filter(merged_into__isnull=True)
                 .select_related("stats")
                 .annotate(
-                    period_never=Count(
+                    period_negative=Count(
                         "reviews",
                         filter=Q(
-                            reviews__verdict=Verdict.NEVER_AGAIN,
                             reviews__visibility=Visibility.PUBLIC,
                             reviews__is_hidden=False,
                             reviews__created_at__gte=since,
+                        )
+                        & (
+                            Q(reviews__verdict=Verdict.NEVER_AGAIN)
+                            | Q(reviews__rating__lt=3)
                         ),
                         distinct=True,
                     )
                 )
-                .filter(period_never__gte=1)
-                .order_by("-period_never", "-stats__never_again_count")[:limit]
+                .filter(period_negative__gte=1)
+                .order_by(
+                    "-period_negative",
+                    "-stats__never_again_count",
+                    "stats__avg_rating",
+                )[:limit]
             )
             data = ProductSerializer(qs, many=True, context=ctx).data
-            never_map = {p.id: p.period_never for p in qs}
+            never_map = {p.id: p.period_negative for p in qs}
             for item in data:
                 item["period_never_again"] = never_map.get(item["id"], 0)
             return Response({"feed": feed, "days": days, "results": data})
@@ -115,30 +128,24 @@ class DiscoverFeedView(APIView):
                 Product.objects.filter(merged_into__isnull=True)
                 .select_related("stats")
                 .annotate(
-                    recent_activity=Max(
-                        "reviews__created_at",
+                    period_comments=Count(
+                        "reviews__comments",
                         filter=Q(
                             reviews__visibility=Visibility.PUBLIC,
                             reviews__is_hidden=False,
-                        ),
-                    ),
-                    period_reviews=Count(
-                        "reviews",
-                        filter=Q(
-                            reviews__visibility=Visibility.PUBLIC,
-                            reviews__is_hidden=False,
-                            reviews__created_at__gte=since,
+                            reviews__comments__is_hidden=False,
+                            reviews__comments__created_at__gte=since,
                         ),
                         distinct=True,
-                    ),
+                    )
                 )
-                .filter(period_reviews__gte=1)
-                .order_by("-period_reviews", "-recent_activity")[:limit]
+                .filter(period_comments__gte=1)
+                .order_by("-period_comments", "-stats__review_count")[:limit]
             )
             data = ProductSerializer(qs, many=True, context=ctx).data
-            activity = {p.id: p.period_reviews for p in qs}
+            comment_map = {p.id: p.period_comments for p in qs}
             for item in data:
-                item["period_review_count"] = activity.get(item["id"], 0)
+                item["period_comment_count"] = comment_map.get(item["id"], 0)
             return Response({"feed": feed, "days": days, "results": data})
 
         return Response(

@@ -72,6 +72,8 @@ class ReviewListSerializer(serializers.ModelSerializer):
     product_image_url = serializers.SerializerMethodField()
     comment_count = serializers.SerializerMethodField()
     comments = serializers.SerializerMethodField()
+    like_count = serializers.SerializerMethodField()
+    liked = serializers.SerializerMethodField()
 
     class Meta:
         model = Review
@@ -94,6 +96,8 @@ class ReviewListSerializer(serializers.ModelSerializer):
             "images",
             "comment_count",
             "comments",
+            "like_count",
+            "liked",
             "created_at",
             "updated_at",
         )
@@ -114,6 +118,21 @@ class ReviewListSerializer(serializers.ModelSerializer):
 
     def get_product_image_url(self, obj) -> str:
         return obj.product.resolve_image_url(self.context.get("request"))
+
+    def get_like_count(self, obj):
+        prefetched = getattr(obj, "_prefetched_objects_cache", {}).get("likes")
+        if prefetched is not None:
+            return len(prefetched)
+        return obj.likes.count()
+
+    def get_liked(self, obj):
+        request = self.context.get("request")
+        if not request or not request.user.is_authenticated:
+            return False
+        prefetched = getattr(obj, "_prefetched_objects_cache", {}).get("likes")
+        if prefetched is not None:
+            return any(like.user_id == request.user.id for like in prefetched)
+        return obj.likes.filter(user=request.user).exists()
 
 
 class ReviewDetailSerializer(ReviewListSerializer):

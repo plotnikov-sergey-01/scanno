@@ -34,6 +34,7 @@ export type Product = {
   off_stores?: string[];
   period_never_again?: number;
   period_review_count?: number;
+  period_comment_count?: number;
   created_at: string;
   updated_at: string;
   already_exists?: boolean;
@@ -73,6 +74,8 @@ export type Review = {
   images: ReviewImage[];
   comment_count?: number;
   comments?: Comment[];
+  like_count?: number;
+  liked?: boolean;
   created_at: string;
   updated_at: string;
 };

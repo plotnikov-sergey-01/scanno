@@ -248,6 +248,11 @@ export const api = {
       body: JSON.stringify({ reaction }),
     }, true),
 
+  likeReview: (reviewId: number) =>
+    request<{ liked: boolean; like_count: number }>(`/reviews/${reviewId}/like/`, {
+      method: "POST",
+    }, true),
+
   getUser: (username: string) => request(`/users/${username}/`),
 
   getUserReviews: (username: string) =>

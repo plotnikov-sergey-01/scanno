@@ -104,7 +104,7 @@ class PublicUserReviewsView(generics.ListAPIView):
         qs = (
             Review.objects.filter(user__username=username, is_hidden=False)
             .select_related("product", "user", "user__profile")
-            .prefetch_related("images", visible_comment_prefetch())
+            .prefetch_related("images", "likes", visible_comment_prefetch())
         )
         if self.request.user.is_authenticated and self.request.user.username == username:
             return qs
